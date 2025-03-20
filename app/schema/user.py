@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import List, Optional
 
 from bson import ObjectId
@@ -9,8 +10,21 @@ from app.utils.helpers import make_optional_model
 from beanie import Document, Indexed
 
 
+class Theme(str, Enum):
+    light = "light"
+    dark = "dark"
+    system = "system"
+
+class Language(str, Enum):
+    en = "en"
+
+
 class Preferences(BaseModel):
-    pass
+    theme: Optional[Theme] = Field(default=Theme.light)
+    notification_email: bool = Field(default=True)
+    language: Optional[Language] = Field(default=Language.en)
+    study_reminder: bool = Field(default=True)
+
 
 class UserBase(BaseModel):
     first_name: str
@@ -18,14 +32,20 @@ class UserBase(BaseModel):
     hashed_password: str
     email: EmailStr
     username: str
+    is_admin: Optional[bool] = Field(default=False)
     preferences: Optional[Preferences] = None
-    decks: List[str] = Field(default=[])
-    quizzes: List[str] = Field(default=[])
-    chapters_folders: List[str] = Field(default=[])
+    courses: List[str] = Field(default=[])
+    is_verify: Optional[bool] = Field(default=False)
 
 
-class UserCreate(UserBase):
-    pass
+    # decks: List[str] = Field(default=[])
+    # quizzes: List[str] = Field(default=[])
+    # chapters_folders: List[str] = Field(default=[])
+
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
 
 
 UserUpdate = make_optional_model(UserBase)

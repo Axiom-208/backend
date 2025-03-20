@@ -8,7 +8,6 @@ from app.schema.session import Session
 
 settings = get_settings()
 
-
 class AuthenticationHandler:
 
     @staticmethod
