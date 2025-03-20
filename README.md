@@ -151,3 +151,8 @@ This section outlines the remaining tasks for the project.
 
 - [ ] Ethan: Create endpoints for flashcard creation, quiz creation
 
+### Finished Tasks (add tasks here, and delete from other sections when complete)
+- [ ] 
+
+
+
