@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     # MongoDB Config
     MONGO_DB_URI: str
-    MONGO_DB_DATABASE_NAME: str
+    MONGO_DB_DATABASE_NAME: str = Field(default="axiom_db")
 
     # Authentication Config
     ACCESS_TOKEN_SECRET: str
