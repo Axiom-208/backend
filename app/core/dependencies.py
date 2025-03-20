@@ -4,6 +4,7 @@ from app.core.config import Settings
 from app.db.database import MongoDBClient
 from app.schema.flashcard_deck import FlashcardDeckDocument
 from app.schema.quiz import QuizDocument
+from app.schema.session import Session
 from app.schema.user import UserDocument
 
 
@@ -23,6 +24,7 @@ def get_mongo_client():
         document_models=[
             UserDocument,
             FlashcardDeckDocument,
-            QuizDocument
+            QuizDocument,
+            Session
         ]
     )

@@ -1,12 +1,21 @@
 from flask import Flask, jsonify, Response
+from flask_jwt_extended import JWTManager
 
 from app.api.base_router import router as base_router
-from app.core.dependencies import get_mongo_client
+from app.core.dependencies import get_mongo_client, get_settings
 
 from app.middleware.response_middleware import after_request
 
 
+settings = get_settings()
+
 app = Flask(__name__)
+app.config["JWT_SECRET_KEY"] = settings.JWT_SECRET_KEY
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = settings.JWT_ACCESS_TOKEN_EXPIRES
+app.config["JWT_REFRESH_TOKEN_EXPIRES"] = settings.JWT_REFRESH_TOKEN_EXPIRES
+
+jwt = JWTManager(app)
+
 
 app_started: bool = False
 
