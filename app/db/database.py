@@ -7,7 +7,7 @@ from pymongo.errors import PyMongoError
 
 
 class MongoDBClient:
-    def __init__(self, mongo_uri: str, database_name: str, document_models: List[Document] = None):
+    def __init__(self, mongo_uri: str, database_name: str, document_models = None):
         self.mongo_uri = mongo_uri
         self.document_models = document_models if document_models is not None else []
         self.database_name = database_name

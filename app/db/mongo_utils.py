@@ -5,6 +5,7 @@ from datetime import datetime
 
 from app.schema.collection_id.object_id import PyObjectId
 
+
 T = TypeVar("T", bound=Document)
 
 def to_object_id(_id: str) -> PyObjectId:
@@ -50,7 +51,7 @@ class MongoCrud(Generic[T]):
     async def get(self, _id: str) -> Optional[T]:
         return await self.model.get(_id)
 
-    async def read_by_fields(
+    async def get_by_fields(
             self, filters: Dict[str, Any], skip: int = 0, limit: int = 10
     ) -> List[T]:
         return await self.model.find(filters).skip(skip).limit(limit).to_list()

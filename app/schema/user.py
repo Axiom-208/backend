@@ -42,6 +42,8 @@ class User(UserBase, DocumentId):
 class UserDocument(User, Document):
     email: Indexed(EmailStr, unique=True, name="idx_email")
 
+    def to_response(self) -> User:
+        return User(**self.model_dump())
 
     class Settings:
         name = "users"

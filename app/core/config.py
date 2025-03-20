@@ -13,7 +13,9 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = Field(default="development")
 
 
-    # MongoDB Collections
+    # MongoDB Config
+    MONGO_DB_URI: str
+    MONGO_DB_DATABASE_NAME: str
 
 
 
@@ -23,3 +25,7 @@ class Settings(BaseSettings):
     # class Config:
     #     case_sensitive = True
     #     env_file = ".env"
+
+
+settings = Settings()
+

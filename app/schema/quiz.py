@@ -37,4 +37,4 @@ class Quiz(QuizBase, DocumentId):
 class QuizDocument(Quiz, Document):
 
     class Settings:
-        name = "quiz"
+        name = "quizes"

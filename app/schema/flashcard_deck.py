@@ -33,4 +33,4 @@ class FlashcardDeck(FlashcardDeckBase, DocumentId):
 class FlashcardDeckDocument(FlashcardDeck, Document):
 
     class Settings:
-        name = "deck"
+        name = "decks"
