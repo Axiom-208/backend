@@ -1,15 +1,25 @@
 import os
 
-from pydantic_settings import BaseSettings
+from dotenv import load_dotenv, find_dotenv
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+load_dotenv(find_dotenv(usecwd=True))
 
 
 class Settings(BaseSettings):
 
     # Environment
-    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
+    ENVIRONMENT: str = Field(default="development")
+
+
+    # MongoDB Collections
 
 
 
-    class Config:
-        case_sensitive = True
-        env_file = ".env"
+    model_config = SettingsConfigDict(case_sensitive=True, env_file_encoding='utf-8')
+
+
+    # class Config:
+    #     case_sensitive = True
+    #     env_file = ".env"
