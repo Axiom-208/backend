@@ -149,9 +149,9 @@ This section outlines the remaining tasks for the project.
 ### Additional Tasks
 - [ ] Add logging and test error handling
 
-- [ ] Ethan: Create endpoints for flashcard creation, quiz creation
+- [ ] Add a results attribute to the quizzes entity, to store the results of each quiz
 
 ### Finished Tasks (add tasks here, and delete from other sections when complete)
-- [ ] 
+- [ ] Ethan: Create endpoints for flashcard creation, quiz creation
 
 
