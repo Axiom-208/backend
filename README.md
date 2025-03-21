@@ -154,7 +154,4 @@ This section outlines the remaining tasks for the project.
 ### Finished Tasks (add tasks here, and delete from other sections when complete)
 - [ ] 
 
-Questions?
--Do we make courses = course, and quizzes = quiz on database, etc
-
 
