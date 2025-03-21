@@ -139,7 +139,7 @@ This section outlines the remaining tasks for the project.
 - [ ] Develop functions to generate authentication tokens  
 - [ ] Integrate the database to store video data  
 - [ ] Make sure that if a parent is deleted in the database, then the child is also deleted (e.g. deleting a course deletes the associated module)
-      
+- [ ] Add a results attribute to the quizzes entity, to store the results of each quiz
 ### Feature Implementation
 - [ ] Implement video creation functionality  
 - [ ] Integrate video creation with an API endpoint  
@@ -149,7 +149,7 @@ This section outlines the remaining tasks for the project.
 ### Additional Tasks
 - [ ] Add logging and test error handling
 
-- [ ] Add a results attribute to the quizzes entity, to store the results of each quiz
+
 
 ### Finished Tasks (add tasks here, and delete from other sections when complete)
 - [ ] Ethan: Create endpoints for flashcard creation, quiz creation
