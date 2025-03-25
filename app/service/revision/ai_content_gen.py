@@ -13,6 +13,7 @@ from google import genai
 from typing import Dict, List, Tuple, Union, Optional, Any
 from app.models.notes import NotesModel
 from app.schema.notes import NoteDocument
+from app.schema.quiz import Question
 
 # Load environment variables
 load_dotenv()
@@ -180,3 +181,19 @@ class AIContentGenerator:
         except Exception as e:
             return False, f"Error generating flashcards: {str(e)}"
     
+    def generate_explanation(self, question:Question, marked_answer: int=None) -> str:
+        try:
+            prompt = f"""
+            Explain why the answer of the following question {question.question} is {question.options[question.correct_answer].text} 
+            but not {question.options[marked_answer].text or ""}.
+            """
+
+            response = self.client.generate_content(
+                prompt,
+                generation_config={'response_mime_type': 'text/plain'}
+            )
+
+            return response.text
+        except Exception as e:
+            print(f"Error generating explanation: {str(e)}")
+            return "Error generating explanation"

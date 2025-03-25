@@ -7,11 +7,17 @@ from app.schema.collection_id.document_id import DocumentId
 from app.utils.helpers import make_optional_model
 
 
+class QuestionAnswer(BaseModel):
+    question_number: int
+    answer: str = Field(default=None)
+
 class QuestionOption(BaseModel):
     text: str
     is_correct: bool
 
 class Question(BaseModel):
+    question_number: int
+    question: str
     options: List[QuestionOption]
 
 class QuizBase(BaseModel):
