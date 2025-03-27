@@ -11,9 +11,10 @@ import json
 import re
 from google import genai
 from typing import Dict, List, Tuple, Union, Optional, Any
-from app.models.notes import NotesModel
+from app.models.notes import NoteModel
 from app.schema.notes import NoteDocument
 from app.schema.quiz import Question
+
 
 # Load environment variables
 load_dotenv()
@@ -29,13 +30,7 @@ class AIContentGenerator:
             self.client = None
         else:
             try:
-                # Import Google's generative AI client - UPDATED IMPORT STATEMENT
-                
-                # Configure the API
-                genai.configure(api_key=api_key)
-                
-                # Initialize the model
-                self.client = genai.GenerativeModel('gemini-1.5-flash')
+                self.client = genai.Client(api_key=api_key)
                 print("Successfully initialized Google Generative AI client")
             except Exception as e:
                 print(f"Failed to initialize Google Generative AI client: {str(e)}")
@@ -84,12 +79,12 @@ class AIContentGenerator:
                 
                 The quiz should be in JSON format with the following structure:
                 {{
-                  "title": "{note.title} Quiz",
-                  "questions": [
+
                     {{
+                      "question_number": "Number of the question",
                       "question": "Specific question about the content",
-                      "options": ["Option A", "Option B", "Option C", "Option D"],
-                      "correct_answer": "Option that is correct"
+                      "options": [{"text: string, is_correct: boolean"}],
+                      "correct_answer": "Number of option that is correct (index starting from 0)"
                     }},
                     ... more questions ...
                   ]
@@ -101,9 +96,10 @@ class AIContentGenerator:
                 information in the content.
                 """
                 
-                response = self.client.generate_content(
-                    prompt,
-                    generation_config={'response_mime_type': 'application/json'}
+                response = self.client.models.generate_content(
+                    model="gemini-2.0-flash",
+                    contents=prompt,
+                    config={'response_mime_type': 'application/json'}
                 )
                 
                 # Get the response text
@@ -128,8 +124,8 @@ class AIContentGenerator:
         try:
             # Truncate content if it's too long
             content = note.content
-            if len(content) > 30000:  # Limit to 30k characters
-                content = content[:30000] + "..."
+
+
 
             try:
                 # Generate the flashcards using Google Generative AI client - UPDATED API CALL
@@ -139,16 +135,13 @@ class AIContentGenerator:
                 {content}
                 
                 The flashcards should be in JSON format with the following structure:
+                
                 {{
-                  "title": "{note['title']} Flashcards",
-                  "cards": [
-                    {{
-                      "front": "Specific term or concept from the content",
-                      "back": "Definition or explanation from the content"
-                    }},
-                    ... more cards ...
-                  ]
-                }}
+                    "front": "Specific term or concept from the content",
+                    "back": "Definition or explanation from the content"
+                }},
+                ... more cards ...
+                
                 
                 Please create at least 8 flashcards that directly focus on the specific information in the
                 content. The front of each card should have a specific question or key term from 
@@ -158,9 +151,10 @@ class AIContentGenerator:
                 generic cards about studying techniques or the document itself.
                 """
                 
-                response = self.client.generate_content(
-                    prompt,
-                    generation_config={'response_mime_type': 'application/json'}
+                response = self.client.models.generate_content(
+                    model="gemini-2.0-flash",
+                    contents= prompt,
+                    config={'response_mime_type': 'application/json'}
                 )
                 
                 # Get the response text
@@ -188,9 +182,10 @@ class AIContentGenerator:
             but not {question.options[marked_answer].text or ""}.
             """
 
-            response = self.client.generate_content(
-                prompt,
-                generation_config={'response_mime_type': 'text/plain'}
+            response = self.client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=prompt,
+                config={'response_mime_type': 'text/plain'}
             )
 
             return response.text

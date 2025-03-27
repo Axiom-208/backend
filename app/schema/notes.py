@@ -10,10 +10,15 @@ from beanie import Document, Indexed
 
 
 class NoteBase(BaseModel):
-    module_id: ObjectId
+ #   module_id: ObjectId
     title: str
     topic: str
     content: str
+
+    model_config = {
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True
+    }
 
 
 class NoteCreate(BaseModel):
