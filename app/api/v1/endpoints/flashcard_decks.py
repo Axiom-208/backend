@@ -1,54 +1,60 @@
-from flask import Blueprint, jsonify, abort, request
+from fastapi import APIRouter, HTTPException
+from typing import Optional, Dict, Any
 
 from app.models.flashcard_decks import FlashcardDeckModel
 from app.schema import flashcard_deck as flashcard_deck_schema
 
-router = Blueprint("flashcard_decks", __name__, url_prefix="/flashcard_decks")
+router = APIRouter(prefix="/flashcard_decks", tags=["flashcard_decks"])
 flashcard_deck_model = FlashcardDeckModel()
 
 
-@router.route("/<string:flashcard_deck_id>", methods=["GET"])
+@router.get("/{flashcard_deck_id}")
 async def get_flashcard_deck(flashcard_deck_id: str):
     flashcard_deck = await flashcard_deck_model.get(flashcard_deck_id)
     if not flashcard_deck:
-        abort(400, description="Flashcard deck not found")
-    return jsonify(flashcard_deck.to_response()), 200
+        raise HTTPException(status_code=400, detail="Flashcard deck not found")
+    return flashcard_deck.to_response()
 
-@router.route("/", methods=["POST"])
-async def create_flashcard_deck():
+@router.post("/", status_code=201)
+async def create_flashcard_deck(flashcard_deck: flashcard_deck_schema.FlashcardDeckCreate):
     try:
-        flashcard_deck_data = request.get_json()
-        new_flashcard_deck = await flashcard_deck_model.create_flashcard_deck(flashcard_deck_schema.FlashcardDeckCreate(**flashcard_deck_data))
-        return jsonify(new_flashcard_deck.to_response()), 201
+        new_flashcard_deck = await flashcard_deck_model.create_flashcard_deck(flashcard_deck)
+        return new_flashcard_deck.to_response()
     except Exception as e:
-        abort(400, description=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
 
-@router.route("/<string:flashcard_deck_id>", methods=["PUT"])
-async def update_flashcard_deck(flashcard_deck_id: str):
+@router.put("/{flashcard_deck_id}")
+async def update_flashcard_deck(
+    flashcard_deck_id: str, 
+    flashcard_deck: flashcard_deck_schema.FlashcardDeckUpdate
+):
     try:
-        update_data = request.get_json()
-        updated_flashcard_deck = await flashcard_deck_model.update_flashcard_deck(flashcard_deck_id, flashcard_deck_schema.FlashcardDeckUpdate(**update_data))
+        updated_flashcard_deck = await flashcard_deck_model.update_flashcard_deck(
+            flashcard_deck_id, 
+            flashcard_deck
+        )
         if not updated_flashcard_deck:
-            abort(400, description="Flashcard deck not found or update failed")
-        return jsonify(updated_flashcard_deck.to_response()), 200
+            raise HTTPException(status_code=400, detail="Flashcard deck not found or update failed")
+        return updated_flashcard_deck.to_response()
     except Exception as e:
-        abort(400, description=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
 
-@router.route("/<string:flashcard_deck_id>", methods=["DELETE"])
+@router.delete("/{flashcard_deck_id}")
 async def delete_flashcard_deck(flashcard_deck_id: str):
     deleted = await flashcard_deck_model.delete(flashcard_deck_id)
     if not deleted:
-        abort(400, description="Flashcard deck not found or deletion failed")
-    return jsonify({"message": "Flashcard deck deleted successfully"}), 200
+        raise HTTPException(status_code=400, detail="Flashcard deck not found or deletion failed")
+    return {"message": "Flashcard deck deleted successfully"}
 
-@router.route("/", methods=["GET"])
-async def get_all_flashcard_decks():
+@router.get("/")
+async def get_all_flashcard_decks(
+    skip: int = 0,
+    limit: int = 10,
+    cursor: Optional[str] = None    
+):
     try:
-        skip = int(request.args.get("skip", 0))
-        limit = int(request.args.get("limit", 10))
-        cursor = request.args.get("cursor", None)
         flashcard_decks_data = await flashcard_deck_model.get_all(skip=skip, limit=limit, cursor=cursor)
         flashcard_decks_data["items"] = [flashcard_deck.to_response() for flashcard_deck in flashcard_decks_data["items"]]
-        return jsonify(flashcard_decks_data), 200
+        return flashcard_decks_data
     except Exception as e:
-        abort(400, description=str(e))
+        raise HTTPException(status_code=400, detail=str(e))

@@ -1,54 +1,53 @@
-from flask import Blueprint, jsonify, abort, request
+from fastapi import APIRouter, HTTPException
+from typing import Optional, Dict, Any
 
 from app.models.quiz import QuizModel
 from app.schema import quiz as quiz_schema
 
-router = Blueprint("quizzes", __name__, url_prefix="/quizzes")
+router = APIRouter(prefix="/quizzes", tags=["quizzes"])
 quiz_model = QuizModel()
 
-
-@router.route("/<string:quiz_id>", methods=["GET"])
+@router.get("/{quiz_id}")
 async def get_quiz(quiz_id: str):
     quiz = await quiz_model.get(quiz_id)
     if not quiz:
-        abort(400, description="Quiz not found")
-    return jsonify(quiz.to_response()), 200
+        raise HTTPException(status_code=400, detail="Quiz not found")
+    return quiz.to_response()
 
-@router.route("/", methods=["POST"])
-async def create_quiz():
+@router.post("/", status_code=201)
+async def create_quiz(quiz_data: quiz_schema.QuizCreate):
     try:
-        quiz_data = request.get_json()
-        new_quiz = await quiz_model.create_quiz(quiz_schema.QuizCreate(**quiz_data))
-        return jsonify(new_quiz.to_response()), 201
+        new_quiz = await quiz_model.create_quiz(quiz_data)
+        return new_quiz.to_response()
     except Exception as e:
-        abort(400, description=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
 
-@router.route("/<string:quiz_id>", methods=["PUT"])
-async def update_quiz(quiz_id: str):
+@router.put("/{quiz_id}")
+async def update_quiz(quiz_id: str, update_data: quiz_schema.QuizUpdate):
     try:
-        update_data = request.get_json()
-        updated_quiz = await quiz_model.update_quiz(quiz_id, quiz_schema.QuizUpdate(**update_data))
+        updated_quiz = await quiz_model.update_quiz(quiz_id, update_data)
         if not updated_quiz:
-            abort(400, description="Quiz not found or update failed")
-        return jsonify(updated_quiz.to_response()), 200
+            raise HTTPException(status_code=400, detail="Quiz not found or update failed")
+        return updated_quiz.to_response()
     except Exception as e:
-        abort(400, description=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
 
-@router.route("/<string:quiz_id>", methods=["DELETE"])
+@router.delete("/{quiz_id}")
 async def delete_quiz(quiz_id: str):
     deleted = await quiz_model.delete(quiz_id)
     if not deleted:
-        abort(400, description="Quiz not found or deletion failed")
-    return jsonify({"message": "Quiz deleted successfully"}), 200
+        raise HTTPException(status_code=400, detail="Quiz not found or deletion failed")
+    return {"message": "Quiz deleted successfully"}
 
-@router.route("/", methods=["GET"])
-async def get_all_quizzes():
+@router.get("/")
+async def get_all_quizzes(
+    skip: int = 0,
+    limit: int = 10,
+    cursor: Optional[str] = None
+):
     try:
-        skip = int(request.args.get("skip", 0))
-        limit = int(request.args.get("limit", 10))
-        cursor = request.args.get("cursor", None)
         quizzes_data = await quiz_model.get_all(skip=skip, limit=limit, cursor=cursor)
         quizzes_data["items"] = [quiz.to_response() for quiz in quizzes_data["items"]]
-        return jsonify(quizzes_data), 200
+        return quizzes_data
     except Exception as e:
-        abort(400, description=str(e))
+        raise HTTPException(status_code=400, detail=str(e))

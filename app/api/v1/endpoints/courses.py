@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from app.models.courses import CourseModel
 from app.schema import course as course_schema
 
-router = APIRouter()
+router = APIRouter(prefix="/courses", tags=[""])
 course_model = CourseModel()
 
 
