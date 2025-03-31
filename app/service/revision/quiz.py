@@ -4,9 +4,8 @@ from app.schema.notes import NoteDocument
 from app.service.revision.ai_content_gen import AIContentGenerator
 from typing import List
 
-class QuizHandler:
+class QuizHandler(QuizModel):
     def __init__(self):
-        self.quiz_model = QuizModel()
         self.ai_content_gen = AIContentGenerator()
 
     async def create_quiz(self, note: NoteDocument):
@@ -19,7 +18,7 @@ class QuizHandler:
             "note_id": str(note.id)
         }
 
-        return await self.quiz_model.create(quiz)
+        return await self.create(quiz)
     
     async def grade_quiz(self, quiz:QuizDocument, answers: List[int]) -> int:
         score = 0
@@ -32,7 +31,7 @@ class QuizHandler:
             
         score = (score / len(answers)) * 100
 
-        await self.quiz_model.update(_id=str(quiz.id), data={"score": score})
+        await self.update(_id=str(quiz.id), data={"score": score})
 
         return score, wrong_answers
     

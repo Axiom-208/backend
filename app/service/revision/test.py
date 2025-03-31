@@ -47,6 +47,7 @@ async def test_note_handler():
 
 async def main():
     await mongo.init_db()
-    await test_quiz_handler()
+    note = await test_note_handler()
+    await test_flashcard_deck_handler(note)
     
 asyncio.run(main())

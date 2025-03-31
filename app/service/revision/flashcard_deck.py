@@ -4,9 +4,8 @@ from app.schema.notes import NoteDocument
 from app.service.revision.ai_content_gen import AIContentGenerator
 import json
 
-class FlashcardDeckHandler:
+class FlashcardDeckHandler(FlashcardDeckModel):
     def __init__(self):
-        self.flashcard_deck_model = FlashcardDeckModel()
         self.ai_content_gen = AIContentGenerator()
 
     async def create_flashcard_deck_ai(self, note: NoteDocument):
@@ -18,4 +17,4 @@ class FlashcardDeckHandler:
             "note_id": str(note.id)
         }
 
-        return await self.flashcard_deck_model.create(flashcard_deck_data)
+        return await self.create(flashcard_deck_data)
