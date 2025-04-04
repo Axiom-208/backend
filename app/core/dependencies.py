@@ -25,6 +25,5 @@ def get_mongo_client():
             UserDocument,
             FlashcardDeckDocument,
             QuizDocument,
-            Session
         ]
     )

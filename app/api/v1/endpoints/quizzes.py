@@ -5,7 +5,7 @@ from app.models.quiz import QuizModel
 from app.schema import quiz as quiz_schema
 from app.schema.notes import NoteDocument
 
-router = APIRouter(prefix="/quizzes", tags=["quizzes"])
+router = APIRouter()
 quiz_model = QuizModel()
 
 @router.get("/{quiz_id}")

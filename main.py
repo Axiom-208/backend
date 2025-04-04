@@ -7,9 +7,6 @@ from app.core.dependencies import get_mongo_client, get_settings
 from app.api.base_router import router as base_router
 
 
-
-
-
 settings = get_settings()
 
 @asynccontextmanager

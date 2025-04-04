@@ -5,7 +5,7 @@ from app.models.flashcard_decks import FlashcardDeckModel
 from app.schema import flashcard_deck as flashcard_deck_schema
 from app.service.revision.flashcard_deck import FlashcardDeckHandler
 
-router = APIRouter(prefix="/flashcard_decks", tags=["flashcard_decks"])
+router = APIRouter()
 flashcard_deck_handler = FlashcardDeckModel()
 
 

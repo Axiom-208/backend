@@ -1,5 +1,4 @@
-from enum import Enum
-from typing import List, Optional
+from typing import List
 
 from bson import ObjectId
 from pydantic import BaseModel, Field
@@ -11,7 +10,7 @@ from beanie import Document, Indexed
 
 
 class CourseBase(BaseModel):
-    user_id: ObjectId
+    user_id: str
     title: str
     description: str
     modules: List[str] = Field(default=[])
