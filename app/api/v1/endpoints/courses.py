@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, abort, request
 
 from app.models.courses import CourseModel
-from app.schema import course as course_schema
+from app.schema import courses as course_schema
 
 router = Blueprint("courses", __name__, url_prefix="/courses")
 course_model = CourseModel() #add a course model

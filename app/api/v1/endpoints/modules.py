@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, abort, request
 
 from app.models.modules import ModuleModel
-from app.schema import module as module_schema
+from app.schema import modules as module_schema
 
 router = Blueprint("modules", __name__, url_prefix="/modules")
 module_model = ModuleModel()

@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, abort, request
 
 from app.models.video_chapters import VideoChapterModel
-from app.schema import video_chapter as video_chapter_schema
+from app.schema import video_chapters as video_chapter_schema
 
 router = Blueprint("video_chapters", __name__, url_prefix="/video_chapters")
 video_chapter_model = VideoChapterModel()

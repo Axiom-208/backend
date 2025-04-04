@@ -44,3 +44,4 @@ class QuizDocument(Quiz, Document):
 
     class Settings:
         name = "quizes"
+

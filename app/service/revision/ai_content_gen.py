@@ -2,8 +2,7 @@
 Axiom AI Content Generator
 Uses Google Generative AI client for content generation
 """
-from datetime import datetime
-from bson.objectid import ObjectId
+
 from PyPDF2 import PdfReader
 from dotenv import load_dotenv
 import os
@@ -11,7 +10,7 @@ import json
 import re
 from google import genai
 from typing import Dict, List, Tuple, Union, Optional, Any
-from app.models.notes import NotesModel
+from app.models.notes import NoteModel
 from app.schema.notes import NoteDocument
 from app.schema.quiz import Question
 

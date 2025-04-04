@@ -7,15 +7,16 @@ from app.core.dependencies import get_mongo_client, get_settings
 from app.middleware.response_middleware import after_request
 
 
+
 settings = get_settings()
 
 app = Flask(__name__)
+
 app.config["JWT_SECRET_KEY"] = settings.JWT_SECRET_KEY
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = settings.JWT_ACCESS_TOKEN_EXPIRES
 app.config["JWT_REFRESH_TOKEN_EXPIRES"] = settings.JWT_REFRESH_TOKEN_EXPIRES
 
 jwt = JWTManager(app)
-
 
 app_started: bool = False
 
@@ -23,14 +24,19 @@ app_started: bool = False
 async def startup():
     global app_started
     if not app_started:
+
         mongodb = get_mongo_client()
-        await mongodb.init_db()
+        try:
+            print(f"Initializing mongo client.")
+            await mongodb.init_db()
+        except Exception as error:
+            print(f"Mongo Client init failed.\nError: {error}")
         app_started = True
 
 @app.teardown_appcontext
 async def cleanup(exception=None):
     mongo = get_mongo_client()
-    await mongo.disconnect()
+    await mongo.close_connection()
 
 
 

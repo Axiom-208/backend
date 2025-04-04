@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, abort, request
 
 from app.models.notes import NoteModel
-from app.schema import note as note_schema
+from app.schema import notes as note_schema
 
 router = Blueprint("notes", __name__, url_prefix="/notes")
 note_model = NoteModel()
