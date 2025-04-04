@@ -1,43 +1,46 @@
 from flask import Blueprint, jsonify, abort, request
-
+from fastapi import APIRouter, HTTPException
 from app.models.notes import NoteModel
 from app.schema import notes as note_schema
+<<<<<<< HEAD
+=======
+from app.service.revision.notes import NoteHandler
+>>>>>>> 24c25c7b6f10eab51cd3b4f7c9ce2db28f10afc0
 
-router = Blueprint("notes", __name__, url_prefix="/notes")
-note_model = NoteModel()
+router = APIRouter(prefix="/notes", tags=["notes"])
+note_handler = NoteHandler()
 
-@router.route("/<string:note_id>", methods=["GET"])
+@router.get("/{note_id}")
 async def get_note(note_id: str):
-    note = await note_model.get(note_id)
+    note = await note_handler.get(note_id)
     if not note:
-        abort(400, description="Note not found")
-    return jsonify(note.to_response()), 200
+        raise HTTPException(status_code=400, detail="Note not found")
+    return note.to_response()
 
-@router.route("/", methods=["POST"])
-async def create_note():
+@router.post("/file", status_code=201)
+async def create_note(file_path: str, title: str, topic: str):
     try:
-        note_data = request.get_json()
-        new_note = await note_model.create_note(note_schema.NoteCreate(**note_data))
-        return jsonify(new_note.to_response()), 201
+        new_note = await note_handler.create_from_file(file_path, title, topic)
+        return new_note.to_response()
     except Exception as e:
-        abort(400, description=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
 
-@router.route("/<string:note_id>", methods=["PUT"])
-async def update_note(note_id: str):
+@router.put("/{note_id}")
+async def update_note(note_id: str, note: note_schema.NoteUpdate):
     try:
-        update_data = request.get_json()
-        updated_note = await note_model.update_note(note_id, note_schema.NoteUpdate(**update_data))
+        updated_note = await note_handler.update(note_id, note)
         if not updated_note:
-            abort(400, description="Note not found or update failed")
-        return jsonify(updated_note.to_response()), 200
+            raise HTTPException(status_code=400, detail="Note not found or update failed")
+        return updated_note.to_response()
     except Exception as e:
-        abort(400, description=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
 
-@router.route("/<string:note_id>", methods=["DELETE"])
+@router.delete("/{note_id}")
 async def delete_note(note_id: str):
-    deleted = await note_model.delete(note_id)
+    deleted = await note_handler.delete(note_id)
     if not deleted:
-        abort(400, description="Note not found or deletion failed")
+        raise HTTPException(status_code=400, detail="Note not found or deletion failed")
+    return {"message": "Note deleted successfully"}
     return jsonify({"message": "Note deleted successfully"}), 200
 
 @router.route("/", methods=["GET"])
@@ -46,7 +49,7 @@ async def get_all_notes():
         skip = int(request.args.get("skip", 0))
         limit = int(request.args.get("limit", 10))
         cursor = request.args.get("cursor", None)
-        notes_data = await note_model.get_all(skip=skip, limit=limit, cursor=cursor)
+        notes_data = await note_handler.get_all(skip=skip, limit=limit, cursor=cursor)
         notes_data["items"] = [note.to_response() for note in notes_data["items"]]
         return jsonify(notes_data), 200
     except Exception as e:

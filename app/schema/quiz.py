@@ -19,11 +19,14 @@ class Question(BaseModel):
     question_number: int
     question: str
     options: List[QuestionOption]
+    correct_answer: int
 
 class QuizBase(BaseModel):
+    note_id: str
     topic: str
-    questions: Optional[List[str]] = Field(default=[])
+    questions: Optional[List[Question]] = Field(default=[])
     score: Optional[float] = Field(default=0.0)
+    
 
 
 class QuizCreate(QuizBase):

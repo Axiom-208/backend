@@ -1,3 +1,7 @@
 venv
 .env
 *.log
+
+
+__pycache__/
+*.pyc

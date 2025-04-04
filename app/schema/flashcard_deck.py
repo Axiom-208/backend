@@ -8,12 +8,13 @@ from app.utils.helpers import make_optional_model
 
 
 class Flashcard(BaseModel):
-    question: str
-    answer: str
+    front: str
+    back: str
 
 
 class FlashcardDeckBase(BaseModel):
     flashcards: Optional[List[Flashcard]] = Field(default=[])
+    note_id: str
 
 
 class FlashcardDeckCreate(FlashcardDeckBase):
