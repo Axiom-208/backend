@@ -1,12 +1,12 @@
-from flask import Blueprint
+from fastapi import APIRouter
 
-router = Blueprint("auth", __name__, url_prefix="/auth")
+router = APIRouter()
 
 
-@router.route("/login")
+@router.post("/login")
 async def log_in():
     pass
 
-@router.route("/sign-up")
+@router.post("/sign-up")
 async def sign_up():
     pass

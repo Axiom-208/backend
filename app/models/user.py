@@ -8,10 +8,6 @@ from app.schema import user as user_schema
 
 
 class UserModel(MongoCrud[user_schema.UserDocument]):
-    """
-    This class implements the methods that handle basic operations with the mongodb database,
-    while also setting the return type.
-    """
 
     model = user_schema.UserDocument
 

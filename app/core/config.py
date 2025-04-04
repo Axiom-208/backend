@@ -9,12 +9,26 @@ load_dotenv(find_dotenv(usecwd=True))
 
 class Settings(BaseSettings):
 
+    # App settings
+    PROJECT_NAME: str = "Axiom"
+    PROJECT_DESCRIPTION: str = "A production-ready FastAPI backend with authentication, database integration, and more"
+    PROJECT_VERSION: str ="1.0.0"
+
     # Environment
     ENVIRONMENT: str = Field(default="development")
+
+    # CORS settings
+    BACKEND_CORS_ORIGINS: list = [
+        "http://localhost:5173",
+        "http://localhost:5174",
+    ]
 
     # MongoDB Config
     MONGO_DB_URI: str
     MONGO_DB_DATABASE_NAME: str = Field(default="axiom_db")
+
+    MONGO_DATABASE_USER: str = Field(default="admin")
+    MONGO_DATABASE_PASSWORD: str = Field(default="password")
 
     # Authentication Config
     ACCESS_TOKEN_SECRET: str

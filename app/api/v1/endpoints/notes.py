@@ -2,10 +2,8 @@ from flask import Blueprint, jsonify, abort, request
 from fastapi import APIRouter, HTTPException
 from app.models.notes import NoteModel
 from app.schema import notes as note_schema
-<<<<<<< HEAD
-=======
+
 from app.service.revision.notes import NoteHandler
->>>>>>> 24c25c7b6f10eab51cd3b4f7c9ce2db28f10afc0
 
 router = APIRouter(prefix="/notes", tags=["notes"])
 note_handler = NoteHandler()
@@ -41,16 +39,15 @@ async def delete_note(note_id: str):
     if not deleted:
         raise HTTPException(status_code=400, detail="Note not found or deletion failed")
     return {"message": "Note deleted successfully"}
-    return jsonify({"message": "Note deleted successfully"}), 200
 
-@router.route("/", methods=["GET"])
-async def get_all_notes():
-    try:
-        skip = int(request.args.get("skip", 0))
-        limit = int(request.args.get("limit", 10))
-        cursor = request.args.get("cursor", None)
-        notes_data = await note_handler.get_all(skip=skip, limit=limit, cursor=cursor)
-        notes_data["items"] = [note.to_response() for note in notes_data["items"]]
-        return jsonify(notes_data), 200
-    except Exception as e:
-        abort(400, description=str(e))
+# @router.get("/", methods=["GET"])
+# async def get_all_notes():
+#     try:
+#         skip = int(request.args.get("skip", 0))
+#         limit = int(request.args.get("limit", 10))
+#         cursor = request.args.get("cursor", None)
+#         notes_data = await note_handler.get_all(skip=skip, limit=limit, cursor=cursor)
+#         notes_data["items"] = [note.to_response() for note in notes_data["items"]]
+#         return jsonify(notes_data), 200
+#     except Exception as e:
+#         abort(400, description=str(e))

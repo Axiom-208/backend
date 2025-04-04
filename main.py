@@ -1,63 +1,42 @@
-from flask import Flask, jsonify, Response
-from flask_jwt_extended import JWTManager
+from contextlib import asynccontextmanager
+from collections.abc import AsyncIterator
 
-from app.api.base_router import router as base_router
+from fastapi import FastAPI
+
 from app.core.dependencies import get_mongo_client, get_settings
+from app.api.base_router import router as base_router
 
-from app.middleware.response_middleware import after_request
+
 
 
 
 settings = get_settings()
 
-app = Flask(__name__)
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 
-app.config["JWT_SECRET_KEY"] = settings.JWT_SECRET_KEY
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = settings.JWT_ACCESS_TOKEN_EXPIRES
-app.config["JWT_REFRESH_TOKEN_EXPIRES"] = settings.JWT_REFRESH_TOKEN_EXPIRES
+    print(f"App started in {settings.ENVIRONMENT} mode")
 
-jwt = JWTManager(app)
+    mongo_client = get_mongo_client()
 
-app_started: bool = False
+    try:
+        await mongo_client.init_db()
+        print("Initialized Mongo DB client")
 
-@app.before_request
-async def startup():
-    global app_started
-    if not app_started:
+    except Exception as error:
+        print(f"ERROR: {error}")
+    yield
 
-        mongodb = get_mongo_client()
-        try:
-            print(f"Initializing mongo client.")
-            await mongodb.init_db()
-        except Exception as error:
-            print(f"Mongo Client init failed.\nError: {error}")
-        app_started = True
+    print("Closing Mongo DB client connection")
+    await mongo_client.close_connection()
 
-@app.teardown_appcontext
-async def cleanup(exception=None):
-    mongo = get_mongo_client()
-    await mongo.close_connection()
+    print("Shutting down")
 
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    description=settings.PROJECT_DESCRIPTION,
+    version=settings.PROJECT_VERSION,
+    lifespan=lifespan
+)
 
-
-app.before_request(after_request)
-
-app.register_blueprint(base_router)
-
-@app.errorhandler(Exception)
-def handle_exception(error: Exception) -> Response:
-    response_data = {
-        "status": 500,
-        "success": False,
-        "error": {
-            "code": 500,
-            "message": str(error)
-        }
-    }
-    return jsonify(response_data), 500
-
-@app.route('/health')
-def home():
-    return jsonify({
-        "data": "healthy"
-    })
+app.include_router(base_router, prefix="/api")

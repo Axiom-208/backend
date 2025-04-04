@@ -1,61 +1,58 @@
-from flask import Blueprint, jsonify, abort, request
+from fastapi import APIRouter
+from starlette.exceptions import HTTPException
 
 from app.models.user import UserModel
 from app.schema import user as user_schema
 
-router = Blueprint("users", __name__, url_prefix="/users")
+router = APIRouter()
 user_model = UserModel()
 
 
-@router.route("/<string:user_id>", methods=["GET"])
+@router.get("/{user_id}")
 async def get_user(user_id: str):
     user = await user_model.get(user_id)
     if not user:
-        abort(400, description="User not found")
-    return jsonify(user.to_response()), 200
+        raise HTTPException(status_code=400, detail="User not found")
+    return user.to_response()
 
-@router.route("/", methods=["POST"])
-async def create_user():
+@router.post("/")
+async def create_user(user_data: user_schema.UserCreate):
     try:
-        user_data = request.get_json()
-        new_user = await user_model.create_user(user_schema.UserCreate(**user_data))
-        return jsonify(new_user.to_response()), 201
+        new_user = await user_model.create_user(user_data)
+        return new_user.to_response()
     except Exception as e:
-        abort(400, description=str(e))
+        raise HTTPException(detail=f"Error: {e}", status_code=400)
 
-@router.route("/<string:user_id>", methods=["PUT"])
-async def update_user(user_id: str):
-    try:
-        update_data = request.get_json()
-        updated_user = await user_model.update_user(user_id, user_schema.UserUpdate(**update_data))
-        if not updated_user:
-            abort(400, description="User not found or update failed")
-        return jsonify(updated_user.to_response()), 200
-    except Exception as e:
-        abort(400, description=str(e))
+@router.put("/{user_id}")
+async def update_user(user_id: str, update_data: user_schema.UserUpdate):
+    updated_user = await user_model.update_user(user_id, update_data)
+    if not updated_user:
+        HTTPException(detail="User not found or update failed", status_code=400)
+    return updated_user.to_response()
 
-@router.route("/<string:user_id>", methods=["DELETE"])
+
+@router.delete("/{user_id}")
 async def delete_user(user_id: str):
     deleted = await user_model.delete(user_id)
     if not deleted:
-        abort(400, description="User not found or deletion failed")
-    return jsonify({"message": "User deleted successfully"}), 200
+        raise HTTPException(status_code=400, detail="User not found or deletion failed")
+    return {"message": "User deleted successfully"}
 
-@router.route("/", methods=["GET"])
-async def get_all_users():
-    try:
-        skip = int(request.args.get("skip", 0))
-        limit = int(request.args.get("limit", 10))
-        cursor = request.args.get("cursor", None)
-        users_data = await user_model.get_all(skip=skip, limit=limit, cursor=cursor)
-        users_data["items"] = [user.to_response() for user in users_data["items"]]
-        return jsonify(users_data), 200
-    except Exception as e:
-        abort(400, description=str(e))
+# @router.get("/")
+# async def get_all_users():
+#     try:
+#         skip = int(request.args.get("skip", 0))
+#         limit = int(request.args.get("limit", 10))
+#         cursor = request.args.get("cursor", None)
+#         users_data = await user_model.get_all(skip=skip, limit=limit, cursor=cursor)
+#         users_data["items"] = [user_schema.UserDocument(user).to_response() for user in users_data["items"]]
+#         return users_data
+#     except Exception as e:
+#         raise HTTPException(detail=f"Error: {e}", status_code=400)
 
-@router.route("/email/<string:email>", methods=["GET"])
+@router.get("/email/{email}")
 async def get_user_by_email(email: str):
     user = await user_model.get_user_by_email(email)
     if not user:
-        abort(400, description="User not found")
-    return jsonify(user.to_response()), 200
+        raise HTTPException(status_code=400, detail="User not found")
+    return user.to_response()
