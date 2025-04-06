@@ -5,6 +5,7 @@ from fastapi import FastAPI
 
 from app.core.dependencies import get_mongo_client, get_settings
 from app.api.base_router import router as base_router
+from app.middleware.response_middleware import ResponseFormatterMiddleware
 
 
 settings = get_settings()
@@ -43,3 +44,5 @@ app = FastAPI(
 )
 
 app.include_router(base_router, prefix="/api")
+
+app.add_middleware(ResponseFormatterMiddleware)

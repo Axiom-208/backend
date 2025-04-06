@@ -50,7 +50,7 @@ async def login(payload: LoginRequest, response: Response = None):
         samesite="Lax",
         secure=False
     )
-    return {"message": "Logged in"}
+    return {"message": "Logged in", "data": {"username": user.username}}
 
 @router.post("/refresh")
 async def refresh(response: Response, refresh_token: str = Cookie(None)):
