@@ -10,11 +10,11 @@ from app.auth.utils import verify_password
 settings = get_settings()
 user_model = UserModel()
 
-SECRET_KEY = settings.JWT_SECRET_KEY
+SECRET_KEY = settings.ACCESS_TOKEN_SECRET
 REFRESH_SECRET_KEY = settings.REFRESH_TOKEN_SECRET
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
-REFRESH_TOKEN_EXPIRE_DAYS = 7
+ALGORITHM = settings.ENCRYPT_ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRATION_MINUTES
+REFRESH_TOKEN_EXPIRE_DAYS = settings.REFRESH_TOKEN_EXPIRATION_DAYS
 
 
 
@@ -41,6 +41,7 @@ async def authenticate_user(email: str, password: str):
     return user
 
 
+# THIS FUNCTION IS NOT BEING USED ATM. THERE IS ANOTHER VERSION AT app/core/dependencies.py
 async def get_current_user(access_token: str = Cookie(None)):
     if not access_token:
         raise HTTPException(status_code=401, detail="Not authenticated")

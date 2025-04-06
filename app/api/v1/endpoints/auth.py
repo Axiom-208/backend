@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from jose import jwt, JWTError
 
 from app.auth.jwt import create_access_token, authenticate_user, create_refresh_token
-from app.core.dependencies import get_settings
+from app.core.dependencies import get_settings, get_current_user
 from app.models.session import SessionModel
 from app.schema import user as user_schema
 from app.models.user import UserModel
@@ -26,6 +26,9 @@ async def login(payload: LoginRequest, response: Response = None):
 
     access_token = create_access_token({"sub": user.username})
     refresh_token = create_refresh_token({"sub": user.username})
+
+    decoded = jwt.decode(access_token, settings.ACCESS_TOKEN_SECRET, algorithms=[settings.ENCRYPT_ALGORITHM])
+    print(decoded)
 
     try:
         existing_session = await Session.find_one(Session.user_id == user.id)
@@ -84,7 +87,7 @@ async def logout(response: Response, refresh_token: str = Cookie(None)):
     await Session.find_one(Session.refresh_token == refresh_token).delete()
     response.delete_cookie("access_token")
     response.delete_cookie("refresh_token")
-    return {"message": "Logged out"}
+    return {"message": "Logged out", "data": True}
 
 
 @router.post("/register")
@@ -94,3 +97,8 @@ async def register(user: user_schema.UserCreate):
         return {"message": "User created", "data": created_user}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/me", response_model=user_schema.User)
+async def read_current_user(current_user: user_schema.UserDocument = Depends(get_current_user)):
+    return current_user.to_response()

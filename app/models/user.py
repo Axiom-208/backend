@@ -7,7 +7,6 @@ from app.schema import user as user_schema
 from app.auth.utils import hash_password
 
 
-
 class UserModel(MongoCrud[user_schema.UserDocument]):
 
     model = user_schema.UserDocument

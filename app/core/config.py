@@ -33,10 +33,10 @@ class Settings(BaseSettings):
     # Authentication Config
     ACCESS_TOKEN_SECRET: str
     REFRESH_TOKEN_SECRET: str
+    ENCRYPT_ALGORITHM: str = "HS256"
 
-    JWT_SECRET_KEY: str
-    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 120
-    JWT_REFRESH_TOKEN_EXPIRES: int = 604800
+    ACCESS_TOKEN_EXPIRATION_MINUTES: int = 120
+    REFRESH_TOKEN_EXPIRATION_DAYS: int = 7
 
 
     model_config = SettingsConfigDict(case_sensitive=True, env_file_encoding='utf-8')

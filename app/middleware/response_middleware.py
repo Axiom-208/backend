@@ -11,7 +11,7 @@ class ResponseFormatterMiddleware(BaseHTTPMiddleware):
         if request.url.path.startswith("/docs") or request.url.path.startswith("/openapi") or request.url.path.startswith("/redoc"):
             return await call_next(request)
 
-        if request.url.path.endswith("/noformat"):
+        if request.url.path.endswith("/logout"):
             return await call_next(request)
 
         try:
