@@ -11,7 +11,7 @@ class Settings(BaseSettings):
 
     # App settings
     PROJECT_NAME: str = "Axiom"
-    PROJECT_DESCRIPTION: str = "A production-ready FastAPI backend with authentication, database integration, and more"
+    PROJECT_DESCRIPTION: str = "A FastAPI backend with authentication, database integration, and more"
     PROJECT_VERSION: str ="1.0.0"
 
     # Environment
