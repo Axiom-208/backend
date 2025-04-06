@@ -1,5 +1,8 @@
 
-from beanie import Document
+from beanie import Document, Indexed
+from datetime import datetime
+
+from pymongo import IndexModel
 
 from app.schema.collection_id.document_id import DocumentId
 
@@ -8,8 +11,11 @@ class Session(DocumentId, Document):
     user_id: str
     refresh_token: str
 
+    expire_at: datetime = Indexed(expire_after_seconds=60 * 60 * 24 * 7, name="ttl_expires_at")
+
     class Settings:
         name = "sessions"
+
         indexes = [
-            ("created_at", {"expireAfterSeconds": 120})
+            IndexModel("expires_at", expireAfterSeconds=60 * 60 * 24 * 7, name="ttl_expires_at")
         ]

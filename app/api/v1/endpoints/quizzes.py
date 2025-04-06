@@ -15,7 +15,7 @@ async def get_quiz(quiz_id: str):
         raise HTTPException(status_code=400, detail="Quiz not found")
     return quiz.to_response()
 
-@router.post("/ai", status_code=201)
+@router.post("/")
 async def create_quiz(note: NoteDocument):
     try:
         new_quiz = await quiz_model.create_quiz(note)

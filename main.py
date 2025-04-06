@@ -20,6 +20,12 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         await mongo_client.init_db()
         print("Initialized Mongo DB client")
 
+        # db = mongo_client.get_db()
+        # indexes = await db.get_collection("sessions").list_indexes().to_list()
+        # for index in indexes:
+        #     print(index)
+
+
     except Exception as error:
         print(f"ERROR: {error}")
     yield
