@@ -5,9 +5,13 @@ from app.schema.quiz import QuizDocument
 from app.schema.notes import NoteDocument
 from app.schema.flashcard_deck import FlashcardDeckDocument
 import asyncio
+import dotenv
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
+mongo_uri = os.getenv("MONGO_DB_URI")
 
-mongo_uri = ""
 mongo = MongoDBClient(mongo_uri=mongo_uri, database_name="axiom_db", document_models=[NoteDocument, QuizDocument, FlashcardDeckDocument])
 
 
