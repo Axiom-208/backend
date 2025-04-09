@@ -1,6 +1,6 @@
-from flask import Blueprint
+from fastapi import APIRouter
 from app.api.v1.router import router as v1_router
 
-router = Blueprint("api", __name__, url_prefix="/api")
+router = APIRouter(prefix="/api")
 
-router.register_blueprint(v1_router)
+router.include_router(v1_router)

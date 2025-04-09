@@ -5,9 +5,11 @@ from app.models.quiz import QuizModel
 from app.schema import quiz as quiz_schema
 from app.service.revision.quiz import QuizHandler
 from app.schema.notes import NoteDocument
+from app.models.notes import NoteModel
 
 router = APIRouter(prefix="/quizzes", tags=["quizzes"])
 quiz_handler = QuizHandler()
+note_model = NoteModel()
 
 @router.get("/{quiz_id}")
 async def get_quiz(quiz_id: str):
@@ -16,11 +18,12 @@ async def get_quiz(quiz_id: str):
         raise HTTPException(status_code=400, detail="Quiz not found")
     return quiz.to_response()
 
-@router.post("/ai", status_code=201)
-async def create_quiz(note: NoteDocument):
+@router.post("/ai/{note_id}", status_code=201)
+async def create_quiz(note_id: str):
     try:
+        note = await note_model.get(note_id)
         new_quiz = await quiz_handler.create_quiz(note)
-        return new_quiz.to_response()
+        return new_quiz
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
