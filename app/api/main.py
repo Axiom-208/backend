@@ -7,7 +7,7 @@ from app.schema.flashcard_deck import FlashcardDeckDocument
 import asyncio
 
 
-mongo_uri = "mongodb+srv://lcfaria:200805Lf.@cluster0.5imi7.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+mongo_uri = ""
 mongo = MongoDBClient(mongo_uri=mongo_uri, database_name="axiom_db", document_models=[NoteDocument, QuizDocument, FlashcardDeckDocument])
 
 
