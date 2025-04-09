@@ -1,45 +1,45 @@
 from fastapi import APIRouter
+from starlette.exceptions import HTTPException
 
 from app.models.courses import CourseModel
-from app.schema import course as course_schema
+from app.schema import courses as course_schema
 
-router = APIRouter(prefix="/courses", tags=[""])
+router = APIRouter()
 course_model = CourseModel()
 
 
-# @router.route("/<string:course_id>", methods=["GET"])
-# async def get_user(course_id: str):
-#     course = await course_model.get(course_id)
-#     if not course:
-#         abort(400, description="Course not found")
-#     return jsonify(course.to_response()), 200
+@router.get("/{course_id}")
+async def get_user(course_id: str):
+    course = await course_model.get(course_id)
+    if not course:
+        raise HTTPException(status_code=400, detail="Course not found")
+    return course.to_response()
 
-# @router.route("/", methods=["POST"])
-# async def create_course():
-#     try:
-#         course_data = request.get_json()
-#         new_course = await course_model.create_course(course_schema.CourseCreate(**course_data))
-#         return jsonify(new_course.to_response()), 201
-#     except Exception as e:
-#         abort(400, description=str(e))
+@router.post("/")
+async def create_course(course_data: course_schema.CourseCreate):
+    try:
+        new_course = await course_model.create(course_data.model_dump())
+        return new_course.to_response()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-# @router.route("/<string:course_id>", methods=["PUT"])
-# async def update_course(course_id: str):
-#     try:
-#         update_data = request.get_json()
-#         updated_course = await course_model.update_course(course_id, course_schema.CourseUpdate(**update_data))
-#         if not updated_course:
-#             abort(400, description="Course not found or update failed")
-#         return jsonify(updated_course.to_response()), 200
-#     except Exception as e:
-#         abort(400, description=str(e))
+@router.put("/{course_id}")
+async def update_course(course_id: str, update_data: course_schema.CourseUpdate):
+    try:
+        updated_course: course_schema.CourseDocument = await course_model.update(course_id, update_data)
+        if not updated_course:
+            raise HTTPException(status_code=400, detail="Course not found or update failed")
+        return updated_course.to_response()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-# @router.route("/<string:course_id>", methods=["DELETE"])
-# async def delete_course(course_id: str):
-#     deleted = await course_model.delete(course_id)
-#     if not deleted:
-#         abort(400, description="Course not found or deletion failed")
-#     return jsonify({"message": "Course deleted successfully"}), 200
+@router.delete("/{course_id}")
+async def delete_course(course_id: str):
+    deleted = await course_model.delete(course_id)
+    if not deleted:
+        raise HTTPException(status_code=400, detail="Course not found or deletion failed")
+    return {"message": "Course deleted successfully"}
+
 
 # @router.route("/", methods=["GET"])
 # async def get_all_courses():
@@ -52,7 +52,7 @@ course_model = CourseModel()
 #         return jsonify(courses_data), 200
 #     except Exception as e:
 #         abort(400, description=str(e))
-
-
-
+#
+#
+#
 

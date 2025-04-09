@@ -26,7 +26,6 @@ class QuizBase(BaseModel):
     topic: str
     questions: Optional[List[Question]] = Field(default=[])
     score: Optional[float] = Field(default=0.0)
-    
 
 
 class QuizCreate(QuizBase):
@@ -45,5 +44,9 @@ class Quiz(QuizBase, DocumentId):
 
 class QuizDocument(Quiz, Document):
 
+    def to_response(self) -> Quiz:
+        return Quiz(**self.model_dump())
+
     class Settings:
         name = "quizes"
+

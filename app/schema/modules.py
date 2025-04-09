@@ -18,6 +18,11 @@ class ModuleBase(BaseModel):
     video_chapters: List[str] = Field(default=[])
     quizzes: List[str] = Field(default=[])
 
+    model_config = {
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True
+    }
+
 
 class ModuleCreate(BaseModel):
     title: str
@@ -32,10 +37,7 @@ ModuleUpdate = make_optional_model(ModuleBase)
 
 
 class Module(ModuleBase, DocumentId):
-    model_config = {
-        "populate_by_name": True,
-        "arbitrary_types_allowed": True
-    }
+    pass
 
 
 class ModuleDocument(Module, Document):

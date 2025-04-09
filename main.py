@@ -1,57 +1,59 @@
-from flask import Flask, jsonify, Response
-from flask_jwt_extended import JWTManager
+from contextlib import asynccontextmanager
+from collections.abc import AsyncIterator
 
-from app.api.base_router import router as base_router
+from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
+
 from app.core.dependencies import get_mongo_client, get_settings
-
-from app.middleware.response_middleware import after_request
+from app.api.base_router import router as base_router
+from app.middleware.response_middleware import ResponseFormatterMiddleware
 
 
 settings = get_settings()
 
-app = Flask(__name__)
-app.config["JWT_SECRET_KEY"] = settings.JWT_SECRET_KEY
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = settings.JWT_ACCESS_TOKEN_EXPIRES
-app.config["JWT_REFRESH_TOKEN_EXPIRES"] = settings.JWT_REFRESH_TOKEN_EXPIRES
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 
-jwt = JWTManager(app)
+    print(f"App started in {settings.ENVIRONMENT} mode")
 
+    mongo_client = get_mongo_client()
 
-app_started: bool = False
+    try:
+        await mongo_client.init_db()
+        print("Initialized Mongo DB client")
 
-@app.before_request
-async def startup():
-    global app_started
-    if not app_started:
-        mongodb = get_mongo_client()
-        await mongodb.init_db()
-        app_started = True
-
-@app.teardown_appcontext
-async def cleanup(exception=None):
-    mongo = get_mongo_client()
-    await mongo.disconnect()
+        # db = mongo_client.get_db()
+        # indexes = await db.get_collection("sessions").list_indexes().to_list()
+        # for index in indexes:
+        #     print(index)
 
 
+    except Exception as error:
+        print(f"ERROR: {error}")
+    yield
 
-app.before_request(after_request)
+    print("Closing Mongo DB client connection")
+    await mongo_client.close_connection()
 
-app.register_blueprint(base_router)
+    print("Shutting down")
 
-@app.errorhandler(Exception)
-def handle_exception(error: Exception) -> Response:
-    response_data = {
-        "status": 500,
-        "success": False,
-        "error": {
-            "code": 500,
-            "message": str(error)
-        }
-    }
-    return jsonify(response_data), 500
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    description=settings.PROJECT_DESCRIPTION,
+    version=settings.PROJECT_VERSION,
+    lifespan=lifespan
+)
 
-@app.route('/health')
-def home():
-    return jsonify({
-        "data": "healthy"
-    })
+app.include_router(base_router, prefix="/api")
+
+
+
+app.add_middleware(ResponseFormatterMiddleware)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)

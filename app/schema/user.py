@@ -21,9 +21,9 @@ class Language(str, Enum):
 
 class Preferences(BaseModel):
     theme: Optional[Theme] = Field(default=Theme.light)
-    notification_email: bool = Field(default=True)
+    notification_email: Optional[bool] = Field(default=True)
     language: Optional[Language] = Field(default=Language.en)
-    study_reminder: bool = Field(default=True)
+    study_reminder: Optional[bool] = Field(default=True)
 
 
 class UserBase(BaseModel):
@@ -33,8 +33,8 @@ class UserBase(BaseModel):
     email: EmailStr
     username: str
     is_admin: Optional[bool] = Field(default=False)
-    preferences: Optional[Preferences] = None
-    courses: List[str] = Field(default=[])
+    preferences: Optional[Preferences] = Field(default_factory=Preferences)
+    courses: Optional[List[str]] = Field(default=[])
     is_verify: Optional[bool] = Field(default=False)
 
 
@@ -44,8 +44,11 @@ class UserBase(BaseModel):
 
 
 class UserCreate(BaseModel):
+    username: str = Field(..., min_length=4)
     email: EmailStr
-    password: str
+    password: str = Field(..., min_length=6)
+    first_name: str
+    last_name: str
 
 
 UserUpdate = make_optional_model(UserBase)
@@ -61,6 +64,7 @@ class User(UserBase, DocumentId):
 
 class UserDocument(User, Document):
     email: Indexed(EmailStr, unique=True, name="idx_email")
+    username: Indexed(str, unique=True, name="idx_username")
 
     def to_response(self) -> User:
         return User(**self.model_dump())
@@ -71,4 +75,5 @@ class UserDocument(User, Document):
 
         indexes = [
             IndexModel("email", unique=True, name="idx_email"),
+            IndexModel("username", unique=True, name="idx_username"),
         ]

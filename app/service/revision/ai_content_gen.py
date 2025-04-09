@@ -2,8 +2,7 @@
 Axiom AI Content Generator
 Uses Google Generative AI client for content generation
 """
-from datetime import datetime
-from bson.objectid import ObjectId
+
 from PyPDF2 import PdfReader
 from dotenv import load_dotenv
 import os
