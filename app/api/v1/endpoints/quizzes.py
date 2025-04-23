@@ -4,6 +4,7 @@ from typing import Optional, Dict, Any
 from app.models.quiz import QuizModel
 from app.schema import quiz as quiz_schema
 from app.schema.notes import NoteDocument
+from app.models.notes import NoteModel
 
 router = APIRouter()
 quiz_model = QuizModel()
