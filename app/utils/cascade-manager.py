@@ -5,15 +5,17 @@ from motor.motor_asyncio import AsyncIOMotorClient
 class CascadeManager:
     """Generic cascading manager with transaction support for Beanie."""
 
+
     def __init__(self, parent_model: Type[Document], child_relations: List[dict], client: AsyncIOMotorClient):
         """
         :param parent_model: The parent document model
         :param child_relations: List of child relations (model, field, children, is_list)
         :param client: Motor client (used for starting sessions)
         """
+        self.client = client
         self.parent_model = parent_model
         self.child_relations = child_relations
-        self.client = client
+
 
     async def delete_with_cascade(self, parent_id: str):
         """Performs recursive cascade delete inside a MongoDB transaction."""

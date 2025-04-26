@@ -1,3 +1,4 @@
+import json
 from functools import lru_cache
 
 from fastapi import HTTPException, Cookie
@@ -39,8 +40,6 @@ def get_mongo_client():
 
 async def get_current_user(access_token: str = Cookie(None)) -> UserDocument:
 
-    print(access_token)
-
     if not access_token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing access token")
 
@@ -64,3 +63,9 @@ async def get_current_user(access_token: str = Cookie(None)) -> UserDocument:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     return user
+
+def get_service_account_credentials():
+    settings = get_settings()
+    credentials = json.loads(settings.FIREBASE_CREDENTIALS)
+    credentials["private_key"] = credentials["private_key"].replace("\\n", "\n")
+    return credentials
