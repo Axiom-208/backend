@@ -6,6 +6,7 @@ from app.api.v1.endpoints.flashcard_decks import router as flashcard_decks_route
 from app.api.v1.endpoints.modules import router as modules_router
 from app.api.v1.endpoints.quizzes import router as quizzes_router
 from app.api.v1.endpoints.video_chapter import router as video_chapters_router
+from app.api.v1.endpoints.notes import router as notes_router
 
 router = APIRouter()
 
@@ -16,3 +17,5 @@ router.include_router(flashcard_decks_router, prefix="/decks", tags=["Flashcard 
 router.include_router(modules_router, prefix="/modules", tags=["Module"])
 router.include_router(quizzes_router, prefix="/quizzes", tags=["Quiz"])
 router.include_router(video_chapters_router, prefix="/chapters", tags=["Video Chapter"])
+router.include_router(notes_router, prefix="/notes", tags=["Note"])
+

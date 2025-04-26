@@ -1,4 +1,3 @@
-from flask import Blueprint, jsonify, abort, request
 from fastapi import APIRouter, HTTPException
 from app.models.notes import NoteModel
 from app.schema import notes as note_schema
@@ -22,11 +21,19 @@ async def create_note(file_path: str, title: str, topic: str):
         return new_note.to_response()
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+@router.post("/", status_code=201)
+async def create_note(note: note_schema.NoteCreate):
+    try:
+        new_note = await note_handler.create(note.model_dump())
+        return new_note.to_response()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.put("/{note_id}")
 async def update_note(note_id: str, note: note_schema.NoteUpdate):
     try:
-        updated_note = await note_handler.update(note_id, note)
+        updated_note = await note_handler.update(note_id, note.model_dump(exclude_none=True))
         if not updated_note:
             raise HTTPException(status_code=400, detail="Note not found or update failed")
         return updated_note.to_response()

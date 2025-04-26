@@ -1,13 +1,13 @@
 from fastapi import APIRouter, HTTPException
 from typing import Optional, Dict, Any
 
-from app.models.quiz import QuizModel
+from app.service.revision.quiz import QuizHandler
 from app.schema import quiz as quiz_schema
 from app.schema.notes import NoteDocument
 from app.models.notes import NoteModel
 
 router = APIRouter()
-quiz_model = QuizModel()
+quiz_model = QuizHandler()
 
 @router.get("/{quiz_id}")
 async def get_quiz(quiz_id: str):
@@ -17,17 +17,27 @@ async def get_quiz(quiz_id: str):
     return quiz.to_response()
 
 @router.post("/")
-async def create_quiz(note: NoteDocument):
+async def create_quiz(quiz_data: quiz_schema.QuizCreate):
     try:
-        new_quiz = await quiz_model.create_quiz(note)
+        new_quiz = await quiz_model.create(quiz_data.model_dump())
         return new_quiz.to_response()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+@router.post("/ai")
+async def create_quiz_from_note(note: NoteDocument):
+    try:
+        quiz = await quiz_model.create_quiz(note)
+        if not quiz:
+            raise HTTPException(status_code=400, detail="Quiz not found or creation failed")
+        return quiz.to_response()
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.put("/{quiz_id}")
 async def update_quiz(quiz_id: str, update_data: quiz_schema.QuizUpdate):
     try:
-        updated_quiz = await quiz_model.update(quiz_id, update_data)
+        updated_quiz = await quiz_model.update(quiz_id, update_data.model_dump(exclude_none=True))
         if not updated_quiz:
             raise HTTPException(status_code=400, detail="Quiz not found or update failed")
         return updated_quiz.to_response()

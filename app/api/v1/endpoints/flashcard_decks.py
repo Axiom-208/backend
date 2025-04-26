@@ -1,24 +1,25 @@
 from fastapi import APIRouter, HTTPException
 
-from app.models.flashcard_decks import FlashcardDeckModel
+from app.service.revision.flashcard_deck import FlashcardDeckHandler
 from app.schema import flashcard_deck as flashcard_deck_schema
+from app.schema.notes import NoteDocument
 
 
 router = APIRouter()
-flashcard_deck_handler = FlashcardDeckModel()
+flashcard_deck_handler = FlashcardDeckHandler()
 
 @router.get("/{flashcard_deck_id}")
 async def get_flashcard_deck(flashcard_deck_id: str):
     flashcard_deck = await flashcard_deck_handler.get(flashcard_deck_id)
     if not flashcard_deck:
         raise HTTPException(status_code=400, detail="Flashcard deck not found")
-    return flashcard_deck.to_response()
+    return flashcard_deck
 
 @router.post("/", status_code=201)
 async def create_flashcard_deck(flash_card_deck_data: flashcard_deck_schema.FlashcardDeckCreate):
     try:
         new_flashcard_deck = await flashcard_deck_handler.create(flash_card_deck_data.model_dump())
-        return new_flashcard_deck.to_response()
+        return new_flashcard_deck
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -30,11 +31,11 @@ async def update_flashcard_deck(
     try:
         updated_flashcard_deck = await flashcard_deck_handler.update(
             flashcard_deck_id, 
-            flashcard_deck
+            flashcard_deck.model_dump(exclude_none=True)
         )
         if not updated_flashcard_deck:
             raise HTTPException(status_code=400, detail="Flashcard deck not found or update failed")
-        return updated_flashcard_deck.to_response()
+        return updated_flashcard_deck
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -44,6 +45,17 @@ async def delete_flashcard_deck(flashcard_deck_id: str):
     if not deleted:
         raise HTTPException(status_code=400, detail="Flashcard deck not found or deletion failed")
     return {"message": "Flashcard deck deleted successfully"}
+
+@router.post("/ai")
+async def create_flashcard_from_note(note: NoteDocument):
+    try:
+        flashcard_deck = await flashcard_deck_handler.create_flashcard_deck_ai(note)
+        if not flashcard_deck:
+            raise HTTPException(status_code=400, detail="Flashcard deck not found or creation failed")
+        return flashcard_deck
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 
 # @router.get("/")
 # async def get_all_flashcard_decks(
