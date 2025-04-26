@@ -35,7 +35,10 @@ class UserBase(BaseModel):
     username: str = Field(..., alias="username")
     is_admin: Optional[bool] = Field(default=False, alias="isAdmin")
     preferences: Optional[Preferences] = Field(default_factory=Preferences, alias="preferences")
-    courses: Optional[List[str]] = Field(default=[], alias="courses")
+    notes: Optional[List[str]] = Field(default=[], alias="notes")
+    quizzes: Optional[List[str]] = Field(default=[], alias="quizzes")
+    flashcards: Optional[List[str]] = Field(default=[], alias="flashcards")
+    chapters: Optional[List[str]] = Field(default=[], alias="chapters")
     is_verify: Optional[bool] = Field(default=False, alias="isVerify")
 
     model_config = {

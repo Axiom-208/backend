@@ -1,8 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 
 from app.service.revision.flashcard_deck import FlashcardDeckHandler
 from app.schema import flashcard_deck as flashcard_deck_schema
 from app.schema.notes import NoteDocument
+from app.core.dependencies import get_current_user
+from app.schema.user import UserDocument
+from app.models.user import UserModel
 
 
 router = APIRouter()
@@ -15,13 +18,52 @@ async def get_flashcard_deck(flashcard_deck_id: str):
         raise HTTPException(status_code=400, detail="Flashcard deck not found")
     return flashcard_deck
 
+@router.get("/user")
+async def get_flashcard_decks_by_user(current_user: UserDocument = Depends(get_current_user)):
+    try:
+        flashcard_decks = current_user.flashcards
+        return [deck.to_response() for deck in flashcard_decks]
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @router.post("/", status_code=201)
 async def create_flashcard_deck(flash_card_deck_data: flashcard_deck_schema.FlashcardDeckCreate):
     try:
+        current_user = await get_current_user()
+        if not current_user:
+            raise HTTPException(status_code=401, detail="User not authenticated")
+
         new_flashcard_deck = await flashcard_deck_handler.create(flash_card_deck_data.model_dump())
+
+        await current_user.update(  
+            current_user.id,
+            {"$push": {"flashcards": new_flashcard_deck.id}}
+        )
         return new_flashcard_deck
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+
+@router.post("/ai")
+async def create_flashcard_from_note(note: NoteDocument):
+    try:
+        current_user = await get_current_user()
+        if not current_user:
+            raise HTTPException(status_code=401, detail="User not authenticated")
+
+        flashcard_deck = await flashcard_deck_handler.create_flashcard_deck_ai(note)
+        if not flashcard_deck:
+            raise HTTPException(status_code=400, detail="Flashcard deck not found or creation failed")
+        
+        await current_user.update(
+            current_user.id,
+            {"$push": {"flashcards": flashcard_deck.id}}
+        )
+        return flashcard_deck
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 
 @router.put("/{flashcard_deck_id}")
 async def update_flashcard_deck(
@@ -41,21 +83,19 @@ async def update_flashcard_deck(
 
 @router.delete("/{flashcard_deck_id}")
 async def delete_flashcard_deck(flashcard_deck_id: str):
+    current_user = await get_current_user()
+    if not current_user:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+
     deleted = await flashcard_deck_handler.delete(flashcard_deck_id)
     if not deleted:
         raise HTTPException(status_code=400, detail="Flashcard deck not found or deletion failed")
+    
+    await current_user.update(
+        current_user.id,
+        {"$pull": {"flashcards": flashcard_deck_id}}
+    )
     return {"message": "Flashcard deck deleted successfully"}
-
-@router.post("/ai")
-async def create_flashcard_from_note(note: NoteDocument):
-    try:
-        flashcard_deck = await flashcard_deck_handler.create_flashcard_deck_ai(note)
-        if not flashcard_deck:
-            raise HTTPException(status_code=400, detail="Flashcard deck not found or creation failed")
-        return flashcard_deck
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
 
 # @router.get("/")
 # async def get_all_flashcard_decks(

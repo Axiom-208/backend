@@ -1,7 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
 from starlette.exceptions import HTTPException
 
+
 from app.service.chapters.chapters import Chapters
+from app.core.dependencies import get_current_user
+from app.models.user import UserModel
+from app.schema.user import UserDocument
 
 import json
 from fastapi import Request
@@ -21,7 +25,12 @@ chapters_handler = Chapters()
 async def create_clips(url: str):
     """API endpoint to create clips from a youtube URL"""
     try:
-        # Get data from request
+        current_user = await get_current_user()
+        if not current_user:
+            return JSONResponse(
+                status_code=401,
+                content={'success': False, 'error': 'User not authenticated'}
+            )
        
 
         if not url:
@@ -43,6 +52,11 @@ async def create_clips(url: str):
         thread.daemon = True
         thread.start()
 
+        current_user.update(
+            current_user.id,
+            {"$push": {"chapters": job_id}}
+        )
+
         return JSONResponse(
             status_code=202,
             content={
@@ -58,7 +72,7 @@ async def create_clips(url: str):
             content={'success': False, 'error': str(e)}
         )
 
-@router.get('/api/clips/{job_id}')
+@router.get('/{job_id}')
 async def get_clips_status(job_id: str):
     """API endpoint to check status of a job generating clips"""
     if job_id not in chapters_handler.jobs:
@@ -78,3 +92,22 @@ async def get_clips_status(job_id: str):
             'clips': job_data.get('clips', [])
         }
     )
+
+@router.get("/user/clips")
+async def get_clips_by_user(current_user: UserDocument = Depends(get_current_user)):
+    try:
+        jobs = [chapters_handler.jobs[job_id] for job_id in current_user.chapters if job_id in chapters_handler.jobs]
+        clips = []
+        for job in jobs:
+            if job['status'] == 'completed':
+                clips.extend(job.get('clips', []))
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                'success': True,
+                'clips': clips
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

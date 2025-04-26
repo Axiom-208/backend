@@ -1,10 +1,12 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from typing import Optional, Dict, Any
 
 from app.service.revision.quiz import QuizHandler
 from app.schema import quiz as quiz_schema
 from app.schema.notes import NoteDocument
 from app.models.notes import NoteModel
+from app.core.dependencies import get_current_user
+from app.schema.user import UserDocument
 
 router = APIRouter()
 quiz_model = QuizHandler()
@@ -16,10 +18,28 @@ async def get_quiz(quiz_id: str):
         raise HTTPException(status_code=400, detail="Quiz not found")
     return quiz.to_response()
 
+@router.get("/user")
+async def get_quizzes_by_user(current_user: UserDocument = Depends(get_current_user)):
+    try:
+        quizzes = current_user.quizzes
+        return [quiz.to_response() for quiz in quizzes]
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @router.post("/")
 async def create_quiz(quiz_data: quiz_schema.QuizCreate):
     try:
+        current_user = await get_current_user()
+        if not current_user:
+            raise HTTPException(status_code=401, detail="User not authenticated")
+        
         new_quiz = await quiz_model.create(quiz_data.model_dump())
+
+        await current_user.update(
+            current_user.id,
+            {"$push": {"quizzes": new_quiz.id}}
+        )
+
         return new_quiz.to_response()
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -27,9 +47,18 @@ async def create_quiz(quiz_data: quiz_schema.QuizCreate):
 @router.post("/ai")
 async def create_quiz_from_note(note: NoteDocument):
     try:
+        current_user = await get_current_user()
+        if not current_user:
+            raise HTTPException(status_code=401, detail="User not authenticated")
+
         quiz = await quiz_model.create_quiz(note)
         if not quiz:
             raise HTTPException(status_code=400, detail="Quiz not found or creation failed")
+        
+        await current_user.update(
+            current_user.id,
+            {"$push": {"quizzes": quiz.id}}
+        )
         return quiz.to_response()
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -46,9 +75,18 @@ async def update_quiz(quiz_id: str, update_data: quiz_schema.QuizUpdate):
 
 @router.delete("/{quiz_id}")
 async def delete_quiz(quiz_id: str):
+    current_user = await get_current_user()
+    if not current_user:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+
     deleted = await quiz_model.delete(quiz_id)
     if not deleted:
         raise HTTPException(status_code=400, detail="Quiz not found or deletion failed")
+    
+    await current_user.update(
+        current_user.id,
+        {"$pull": {"quizzes": quiz_id}}
+    )
     return {"message": "Quiz deleted successfully"}
 
 @router.get("/all")
