@@ -20,23 +20,27 @@ class Language(str, Enum):
 
 
 class Preferences(BaseModel):
-    theme: Optional[Theme] = Field(default=Theme.light)
-    notification_email: Optional[bool] = Field(default=True)
-    language: Optional[Language] = Field(default=Language.en)
-    study_reminder: Optional[bool] = Field(default=True)
+    theme: Optional[Theme] = Field(default=Theme.light, alias="theme")
+    notification_email: Optional[bool] = Field(default=True, alias="notificationEmail")
+    language: Optional[Language] = Field(default=Language.en, alias="language")
+    study_reminder: Optional[bool] = Field(default=True, alias="studyReminder")
+
 
 
 class UserBase(BaseModel):
-    first_name: str
-    last_name: str
-    hashed_password: str
-    email: EmailStr
-    username: str
-    is_admin: Optional[bool] = Field(default=False)
-    preferences: Optional[Preferences] = Field(default_factory=Preferences)
-    courses: Optional[List[str]] = Field(default=[])
-    is_verify: Optional[bool] = Field(default=False)
+    first_name: str = Field(..., alias="firstName")
+    last_name: str = Field(..., alias="lastName")
+    hashed_password: str = Field(..., alias="hashedPassword")
+    email: EmailStr = Field(..., alias="email")
+    username: str = Field(..., alias="username")
+    is_admin: Optional[bool] = Field(default=False, alias="isAdmin")
+    preferences: Optional[Preferences] = Field(default_factory=Preferences, alias="preferences")
+    courses: Optional[List[str]] = Field(default=[], alias="courses")
+    is_verify: Optional[bool] = Field(default=False, alias="isVerify")
 
+    model_config = {
+        "populate_by_name": True
+    }
 
     # decks: List[str] = Field(default=[])
     # quizzes: List[str] = Field(default=[])
@@ -44,11 +48,12 @@ class UserBase(BaseModel):
 
 
 class UserCreate(BaseModel):
-    username: str = Field(..., min_length=4)
-    email: EmailStr
-    password: str = Field(..., min_length=6)
-    first_name: str
-    last_name: str
+    username: str = Field(..., min_length=4, alias="username")
+    email: EmailStr = Field(..., alias="email")
+    password: str = Field(..., min_length=6, alias="password")
+    first_name: str = Field(..., alias="firstName")
+    last_name: str = Field(..., alias="lastName")
+
 
 
 UserUpdate = make_optional_model(UserBase)
@@ -67,7 +72,8 @@ class UserDocument(User, Document):
     username: Indexed(str, unique=True, name="idx_username")
 
     def to_response(self) -> User:
-        return User(**self.model_dump())
+        return User(**self.model_dump(by_alias=True))
+
 
     class Settings:
         name = "users"

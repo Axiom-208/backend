@@ -39,10 +39,12 @@ class MongoCrud(Generic[T]):
             raise ValueError("A Beanie Document model must be set in the child class.")
 
     async def create(self, data: Dict[str, Any]) -> T:
+
         data["created_at"] = datetime.now()
         data["updated_at"] = datetime.now()
-
+        print("USER BEING CREATED:", data)
         document = self.model(**data)
+
         return await document.insert()
 
     async def get_all(self, skip: int = 0, limit: int = 10, cursor: Optional[Union[str, datetime]] = None) -> Dict[str, Any]:

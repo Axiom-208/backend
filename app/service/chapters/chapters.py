@@ -1,24 +1,24 @@
-from flask import Flask, request, jsonify
 from yt_dlp import YoutubeDL
 import ffmpeg
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
 import json
-import uuid
 from datetime import datetime
-from threading import Thread
 import firebase_admin
 from firebase_admin import credentials, storage
+
+from app.core.dependencies import get_service_account_credentials
+
 
 class Chapters:
 
     def __init__(self):
         # Set up
         load_dotenv()
-        self.api_key=os.getenv("API_KEY")
-        cred_path=os.getenv("FIREBASE_CREDENTIALS_PATH")
-        bucket_name=os.getenv("FIREBASE_STORAGE_BUCKET")
+        self.api_key = os.getenv("API_KEY")
+        cred_path = get_service_account_credentials()
+        bucket_name = os.getenv("FIREBASE_STORAGE_BUCKET")
 
         firebase_init = False
         try:

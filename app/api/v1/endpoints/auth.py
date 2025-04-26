@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, Response, HTTPException, Cookie
-from fastapi.security import OAuth2PasswordRequestForm
 from jose import jwt, JWTError
 
 from app.auth.jwt import create_access_token, authenticate_user, create_refresh_token
@@ -27,31 +26,34 @@ async def login(payload: LoginRequest, response: Response = None):
     access_token = create_access_token({"sub": user.username})
     refresh_token = create_refresh_token({"sub": user.username})
 
-    decoded = jwt.decode(access_token, settings.ACCESS_TOKEN_SECRET, algorithms=[settings.ENCRYPT_ALGORITHM])
-    print(decoded)
-
+    # Delete any existing sessions for this user
     try:
-        existing_session = await Session.find_one(Session.user_id == user.id)
-        if existing_session:
-            await session_model.delete(str(existing_session.id))
+        existing_sessions = await Session.find(Session.user_id == str(user.id)).to_list()
+        for session in existing_sessions:
+            await session_model.delete(str(session.id))
     except Exception as error:
-        print(f"Error while deleting existing session: {error}")
+        print(f"Error while deleting existing sessions: {error}")
 
+    # Create new session
     await session_model.create_session(user_id=str(user.id), refresh_token=refresh_token)
 
+    # Set cookies with environment-aware settings
+    is_production = settings.ENVIRONMENT == "production"
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
         samesite="Lax",
-        secure=False
+        secure=is_production,
+        max_age=settings.ACCESS_TOKEN_EXPIRATION_MINUTES * 60
     )
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
         samesite="Lax",
-        secure=False
+        secure=is_production,
+        max_age=settings.REFRESH_TOKEN_EXPIRATION_DAYS * 24 * 60 * 60
     )
     return {"message": "Logged in", "data": {"username": user.username}}
 
@@ -91,10 +93,37 @@ async def logout(response: Response, refresh_token: str = Cookie(None)):
 
 
 @router.post("/register")
-async def register(user: user_schema.UserCreate):
+async def register(user: user_schema.UserCreate, response: Response = None):
     try:
         created_user = await user_model.create_user(user)
-        return {"message": "User created", "data": created_user}
+        
+        # Create tokens
+        access_token = create_access_token({"sub": created_user.username})
+        refresh_token = create_refresh_token({"sub": created_user.username})
+
+        # Create session
+        await session_model.create_session(user_id=str(created_user.id), refresh_token=refresh_token)
+
+        # Set cookies with environment-aware settings
+        is_production = settings.ENVIRONMENT == "production"
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            httponly=True,
+            samesite="Lax",
+            secure=is_production,
+            max_age=settings.ACCESS_TOKEN_EXPIRATION_MINUTES * 60
+        )
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            httponly=True,
+            samesite="Lax",
+            secure=is_production,
+            max_age=settings.REFRESH_TOKEN_EXPIRATION_DAYS * 24 * 60 * 60
+        )
+
+        return {"message": "User created and logged in", "data": created_user.to_response()}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_SECRET: str
     ENCRYPT_ALGORITHM: str = "HS256"
 
+    # Firebase Config
+    FIREBASE_CREDENTIALS: str
+    FIREBASE_STORAGE_BUCKET: str
+
     ACCESS_TOKEN_EXPIRATION_MINUTES: int = 120
     REFRESH_TOKEN_EXPIRATION_DAYS: int = 7
 
