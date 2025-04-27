@@ -15,6 +15,7 @@ async def get_user(user_id: str):
         raise HTTPException(status_code=400, detail="User not found")
     return user.to_response()
 
+
 @router.post("/")
 async def create_user(user_data: user_schema.UserCreate):
     try:

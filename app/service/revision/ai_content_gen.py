@@ -2,14 +2,16 @@
 Axiom AI Content Generator
 Uses Google Generative AI client for content generation
 """
+from functools import lru_cache
 
 from PyPDF2 import PdfReader
 from dotenv import load_dotenv
 import os
 import json
-import re
 from google import genai
 from typing import Dict, List, Tuple, Union, Optional, Any
+
+from app.core.dependencies import get_settings
 from app.models.notes import NoteModel
 from app.schema.notes import NoteDocument
 from app.schema.quiz import Question
@@ -18,11 +20,13 @@ from app.schema.quiz import Question
 # Load environment variables
 load_dotenv()
 
+settings = get_settings()
+
 class AIContentGenerator:
     
     def __init__(self):        
         # Initialize Google Generative AI
-        api_key = os.getenv("GEMINI_API_KEY")
+        api_key = settings.GEMINI_API_KEY
         
         if not api_key:
             print("Warning: No API_KEY found in environment variables. Using mock generators.")
@@ -124,8 +128,6 @@ class AIContentGenerator:
             # Truncate content if it's too long
             content = note.content
 
-
-
             try:
                 # Generate the flashcards using Google Generative AI client - UPDATED API CALL
                 prompt = f"""
@@ -162,7 +164,6 @@ class AIContentGenerator:
                 # Parse the response
                 try:
                     flashcard_data = json.loads(response_text)
-
                     
                     return True, flashcard_data
                 except json.JSONDecodeError:
@@ -191,3 +192,7 @@ class AIContentGenerator:
         except Exception as e:
             print(f"Error generating explanation: {str(e)}")
             return "Error generating explanation"
+
+@lru_cache()
+def get_ai_content_generator():
+    return AIContentGenerator()

@@ -23,7 +23,7 @@ chapters_handler = Chapters()
 
 @router.post('/api/clips/create')
 async def create_clips(url: str):
-    """API endpoint to create clips from a youtube URL"""
+    """API endpoint to create clips from a YouTube URL"""
     try:
         current_user = await get_current_user()
         if not current_user:

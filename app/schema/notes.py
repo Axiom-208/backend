@@ -31,6 +31,7 @@ NoteUpdate = make_optional_model(NoteBase)
 
 
 class Note(NoteBase, DocumentId):
+
     model_config = {
         "populate_by_name": True,
         "arbitrary_types_allowed": True

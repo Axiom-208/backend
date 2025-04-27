@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 
+from app.models.flashcard_decks import FlashcardDeckModel
 from app.service.revision.flashcard_deck import FlashcardDeckHandler
 from app.schema import flashcard_deck as flashcard_deck_schema
 from app.schema.notes import NoteDocument
@@ -9,11 +10,11 @@ from app.models.user import UserModel
 
 
 router = APIRouter()
-flashcard_deck_handler = FlashcardDeckHandler()
+flashcard_deck_model = FlashcardDeckModel()
 
 @router.get("/{flashcard_deck_id}")
 async def get_flashcard_deck(flashcard_deck_id: str):
-    flashcard_deck = await flashcard_deck_handler.get(flashcard_deck_id)
+    flashcard_deck = await flashcard_deck_model.get(flashcard_deck_id)
     if not flashcard_deck:
         raise HTTPException(status_code=400, detail="Flashcard deck not found")
     return flashcard_deck
@@ -21,8 +22,11 @@ async def get_flashcard_deck(flashcard_deck_id: str):
 @router.get("/user")
 async def get_flashcard_decks_by_user(current_user: UserDocument = Depends(get_current_user)):
     try:
-        flashcard_decks = current_user.flashcards
-        return [deck.to_response() for deck in flashcard_decks]
+        flashcard_decks_ids = current_user.flashcards
+        if flashcard_decks_ids is None:
+            return []
+        flashcard_decks = await flashcard_deck_model.get_many(flashcard_decks_ids)
+        return list(map(lambda doc: doc.to_response(), flashcard_decks))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -33,7 +37,7 @@ async def create_flashcard_deck(flash_card_deck_data: flashcard_deck_schema.Flas
         if not current_user:
             raise HTTPException(status_code=401, detail="User not authenticated")
 
-        new_flashcard_deck = await flashcard_deck_handler.create(flash_card_deck_data.model_dump())
+        new_flashcard_deck = await flashcard_deck_model.create(flash_card_deck_data.model_dump())
 
         await current_user.update(  
             current_user.id,
@@ -51,7 +55,7 @@ async def create_flashcard_from_note(note: NoteDocument):
         if not current_user:
             raise HTTPException(status_code=401, detail="User not authenticated")
 
-        flashcard_deck = await flashcard_deck_handler.create_flashcard_deck_ai(note)
+        flashcard_deck = await flashcard_deck_model.create_flashcard_deck_ai(note)
         if not flashcard_deck:
             raise HTTPException(status_code=400, detail="Flashcard deck not found or creation failed")
         
@@ -71,7 +75,7 @@ async def update_flashcard_deck(
     flashcard_deck: flashcard_deck_schema.FlashcardDeckUpdate
 ):
     try:
-        updated_flashcard_deck = await flashcard_deck_handler.update(
+        updated_flashcard_deck = await flashcard_deck_model.update(
             flashcard_deck_id, 
             flashcard_deck.model_dump(exclude_none=True)
         )
@@ -87,7 +91,7 @@ async def delete_flashcard_deck(flashcard_deck_id: str):
     if not current_user:
         raise HTTPException(status_code=401, detail="User not authenticated")
 
-    deleted = await flashcard_deck_handler.delete(flashcard_deck_id)
+    deleted = await flashcard_deck_model.delete(flashcard_deck_id)
     if not deleted:
         raise HTTPException(status_code=400, detail="Flashcard deck not found or deletion failed")
     
@@ -104,7 +108,7 @@ async def delete_flashcard_deck(flashcard_deck_id: str):
 #     cursor: Optional[str] = None
 # ):
 #     try:
-#         flashcard_decks_data = await flashcard_deck_handler.get_all(skip=skip, limit=limit, cursor=cursor)
+#         flashcard_decks_data = await flashcard_deck_model.get_all(skip=skip, limit=limit, cursor=cursor)
 #         flashcard_decks_data["items"] = [flashcard_deck.to_response() for flashcard_deck in flashcard_decks_data["items"]]
 #         return flashcard_decks_data
 #     except Exception as e:

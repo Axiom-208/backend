@@ -53,6 +53,12 @@ class MongoCrud(Generic[T]):
     async def get(self, _id: str) -> Optional[T]:
         return await self.model.get(_id)
 
+    async def get_many(self, ids: List[str]) -> List[T]:
+        object_ids = [to_object_id(id) for id in ids]
+        return await self.model.find(
+            self.model.id.in_(object_ids)
+        ).to_list()
+
     async def get_by_fields(
             self, filters: Dict[str, Any], skip: int = 0, limit: int = 10
     ) -> List[T]:

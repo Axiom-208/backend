@@ -42,5 +42,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRATION_MINUTES: int = 120
     REFRESH_TOKEN_EXPIRATION_DAYS: int = 7
 
+    # GEMINI Config
+    GEMINI_API_KEY: str
+
+    # OPENAI Config
+    OPEN_AI_API_KEY: str
 
     model_config = SettingsConfigDict(case_sensitive=True, env_file_encoding='utf-8')

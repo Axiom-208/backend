@@ -8,17 +8,18 @@ from datetime import datetime
 import firebase_admin
 from firebase_admin import credentials, storage
 
-from app.core.dependencies import get_service_account_credentials
+from app.core.dependencies import get_service_account_credentials, get_settings
 
+settings = get_settings()
 
 class Chapters:
 
     def __init__(self):
         # Set up
         load_dotenv()
-        self.api_key = os.getenv("API_KEY")
+        self.api_key = settings.OPEN_AI_API_KEY
         cred_path = get_service_account_credentials()
-        bucket_name = os.getenv("FIREBASE_STORAGE_BUCKET")
+        bucket_name = settings.FIREBASE_STORAGE_BUCKET
 
         firebase_init = False
         try:

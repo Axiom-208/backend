@@ -45,7 +45,7 @@ class Quiz(QuizBase, DocumentId):
 class QuizDocument(Quiz, Document):
 
     def to_response(self) -> Quiz:
-        return Quiz(**self.model_dump())
+        return Quiz(**self.model_dump(by_alias=True))
 
     class Settings:
         name = "quizes"

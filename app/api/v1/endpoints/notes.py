@@ -1,4 +1,9 @@
+from typing import List
+
 from fastapi import APIRouter, HTTPException, Depends
+from rich.traceback import Trace
+from watchfiles import awatch
+
 from app.models.notes import NoteModel
 from app.schema import notes as note_schema
 from app.core.dependencies import get_current_user
@@ -7,20 +12,23 @@ from app.schema.user import UserDocument
 from app.service.revision.notes import NoteHandler
 
 router = APIRouter(prefix="/notes", tags=["notes"])
-note_handler = NoteHandler()
+note_model = NoteHandler()
 
 @router.get("/{note_id}")
 async def get_note(note_id: str):
-    note = await note_handler.get(note_id)
+    note = await note_model.get(note_id)
     if not note:
         raise HTTPException(status_code=400, detail="Note not found")
     return note.to_response()
 
-@router.get("/user")
-async def get_note_by_user(current_user: UserDocument =  Depends(get_current_user)):
+@router.get("/user", response_model=List[note_schema.Note], response_model_by_alias=True)
+async def get_note_by_user(current_user: UserDocument = Depends(get_current_user)):
     try:
-        notes = current_user.notes
-        return [note.to_response() for note in notes]
+        notes_ids = current_user.notes
+        if notes_ids is None:
+            return []
+        notes = await note_model.get_many(notes_ids)
+        return list(map(lambda doc: doc.to_response(), notes))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -32,7 +40,7 @@ async def create_note(file_path: str, title: str, topic: str):
         if not current_user:
             raise HTTPException(status_code=401, detail="User not authenticated")
         
-        new_note = await note_handler.create_from_file(file_path, title, topic)
+        new_note = await note_model.create_from_file(file_path, title, topic)
 
         await current_user.update(
             current_user.id,
@@ -50,7 +58,7 @@ async def create_note(note: note_schema.NoteCreate):
         if not current_user:
             raise HTTPException(status_code=401, detail="User not authenticated")
 
-        new_note = await note_handler.create(note.model_dump())
+        new_note = await note_model.create(note.model_dump())
         await current_user.update(
             current_user.id,
             {"$push": {"notes": new_note.id}}
@@ -62,7 +70,7 @@ async def create_note(note: note_schema.NoteCreate):
 @router.put("/{note_id}")
 async def update_note(note_id: str, note: note_schema.NoteUpdate):
     try:
-        updated_note = await note_handler.update(note_id, note.model_dump(exclude_none=True))
+        updated_note = await note_model.update(note_id, note.model_dump(exclude_none=True))
         if not updated_note:
             raise HTTPException(status_code=400, detail="Note not found or update failed")
         return updated_note.to_response()
@@ -75,7 +83,7 @@ async def delete_note(note_id: str):
     if not current_user:
         raise HTTPException(status_code=401, detail="User not authenticated")
 
-    deleted = await note_handler.delete(note_id)
+    deleted = await note_model.delete(note_id)
     if not deleted:
         raise HTTPException(status_code=400, detail="Note not found or deletion failed")
     
@@ -91,7 +99,7 @@ async def delete_note(note_id: str):
 #         skip = int(request.args.get("skip", 0))
 #         limit = int(request.args.get("limit", 10))
 #         cursor = request.args.get("cursor", None)
-#         notes_data = await note_handler.get_all(skip=skip, limit=limit, cursor=cursor)
+#         notes_data = await note_model.get_all(skip=skip, limit=limit, cursor=cursor)
 #         notes_data["items"] = [note.to_response() for note in notes_data["items"]]
 #         return jsonify(notes_data), 200
 #     except Exception as e:

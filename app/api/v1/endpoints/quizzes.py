@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 from app.service.revision.quiz import QuizHandler
 from app.schema import quiz as quiz_schema
@@ -18,11 +18,14 @@ async def get_quiz(quiz_id: str):
         raise HTTPException(status_code=400, detail="Quiz not found")
     return quiz.to_response()
 
-@router.get("/user")
+@router.get("/user", response_model=List[quiz_schema.Quiz], response_model_by_alias=True)
 async def get_quizzes_by_user(current_user: UserDocument = Depends(get_current_user)):
     try:
-        quizzes = current_user.quizzes
-        return [quiz.to_response() for quiz in quizzes]
+        quizzes_ids = current_user.quizzes
+        if quizzes_ids is None:
+            return []
+        quizzes = await quiz_model.get_many(quizzes_ids)
+        return list(map(lambda doc: doc.to_response(), quizzes))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
