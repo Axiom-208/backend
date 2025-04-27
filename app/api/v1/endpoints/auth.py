@@ -43,7 +43,7 @@ async def login(payload: LoginRequest, response: Response = None):
         key="access_token",
         value=access_token,
         httponly=True,
-        samesite="Lax",
+        samesite="none" if is_production else "lax",
         secure=is_production,
         max_age=settings.ACCESS_TOKEN_EXPIRATION_MINUTES * 60
     )
@@ -51,7 +51,7 @@ async def login(payload: LoginRequest, response: Response = None):
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        samesite="Lax",
+        samesite="none" if is_production else "lax",
         secure=is_production,
         max_age=settings.REFRESH_TOKEN_EXPIRATION_DAYS * 24 * 60 * 60
     )
@@ -71,12 +71,14 @@ async def refresh(response: Response, refresh_token: str = Cookie(None)):
 
         # Issue new access token
         new_access_token = create_access_token({"sub": username})
+        is_production = settings.ENVIRONMENT == "production"
         response.set_cookie(
             key="access_token",
             value=new_access_token,
             httponly=True,
-            samesite="Lax",
-            secure=False
+            samesite="none" if is_production else "lax",
+            secure=is_production,
+            max_age = settings.ACCESS_TOKEN_EXPIRATION_MINUTES * 60
         )
         return {"message": "Token refreshed"}
 
@@ -110,7 +112,7 @@ async def register(user: user_schema.UserCreate, response: Response = None):
             key="access_token",
             value=access_token,
             httponly=True,
-            samesite="Lax",
+            samesite="none" if is_production else "lax",
             secure=is_production,
             max_age=settings.ACCESS_TOKEN_EXPIRATION_MINUTES * 60
         )
@@ -118,7 +120,7 @@ async def register(user: user_schema.UserCreate, response: Response = None):
             key="refresh_token",
             value=refresh_token,
             httponly=True,
-            samesite="Lax",
+            samesite="none" if is_production else "lax",
             secure=is_production,
             max_age=settings.REFRESH_TOKEN_EXPIRATION_DAYS * 24 * 60 * 60
         )
