@@ -20,7 +20,7 @@ class QuizHandler(QuizModel):
 
         return await self.create(quiz)
     
-    async def grade_quiz(self, quiz:QuizDocument, answers: List[int]) -> int:
+    async def grade_quiz(self, quiz:QuizDocument, answers: List[int]):
         score = 0
         wrong_answers = []
         for i in range(len(answers)):

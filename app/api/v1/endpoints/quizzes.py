@@ -4,7 +4,6 @@ from typing import Optional, Dict, Any, List
 from app.service.revision.quiz import QuizHandler
 from app.schema import quiz as quiz_schema
 from app.schema.notes import NoteDocument
-from app.models.notes import NoteModel
 from app.core.dependencies import get_current_user
 from app.schema.user import UserDocument
 

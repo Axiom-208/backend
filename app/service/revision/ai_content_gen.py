@@ -9,10 +9,9 @@ from dotenv import load_dotenv
 import os
 import json
 from google import genai
-from typing import Dict, List, Tuple, Union, Optional, Any
+from typing import Dict, Tuple, Union
 
 from app.core.dependencies import get_settings
-from app.models.notes import NoteModel
 from app.schema.notes import NoteDocument
 from app.schema.quiz import Question
 

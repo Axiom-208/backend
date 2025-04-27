@@ -1,18 +1,15 @@
 from typing import List
 
 from fastapi import APIRouter, HTTPException, Depends
-from rich.traceback import Trace
-from watchfiles import awatch
 
 from app.models.notes import NoteModel
 from app.schema import notes as note_schema
 from app.core.dependencies import get_current_user
 from app.schema.user import UserDocument
 
-from app.service.revision.notes import NoteHandler
 
 router = APIRouter(prefix="/notes", tags=["notes"])
-note_model = NoteHandler()
+note_model = NoteModel()
 
 @router.get("/{note_id}")
 async def get_note(note_id: str):

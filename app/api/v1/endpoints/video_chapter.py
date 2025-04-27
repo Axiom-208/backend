@@ -31,7 +31,6 @@ async def create_clips(url: str):
                 status_code=401,
                 content={'success': False, 'error': 'User not authenticated'}
             )
-       
 
         if not url:
             return JSONResponse(

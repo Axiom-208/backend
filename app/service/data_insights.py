@@ -1,7 +1,5 @@
-from typing import Dict, List, Optional
-from datetime import datetime
+from typing import Dict, Optional
 
-from app.models.quiz import QuizModel
 from app.schema import quiz as quiz_schema
 
 

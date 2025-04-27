@@ -8,7 +8,7 @@ from app.utils.helpers import make_optional_model
 
 
 class QuestionAnswer(BaseModel):
-    question_number: int
+    question_number: int = Field(..., alias="questionNumber")
     answer: str = Field(default=None)
 
 class QuestionOption(BaseModel):

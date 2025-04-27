@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: list = [
         "http://localhost:5173",
         "http://localhost:5174",
+        "https://axiom-frontend-585462847531.europe-west2.run.app"
     ]
 
     # MongoDB Config

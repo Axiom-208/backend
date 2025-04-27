@@ -1,12 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends
 
 from app.models.flashcard_decks import FlashcardDeckModel
-from app.service.revision.flashcard_deck import FlashcardDeckHandler
 from app.schema import flashcard_deck as flashcard_deck_schema
 from app.schema.notes import NoteDocument
 from app.core.dependencies import get_current_user
 from app.schema.user import UserDocument
-from app.models.user import UserModel
 
 
 router = APIRouter()
