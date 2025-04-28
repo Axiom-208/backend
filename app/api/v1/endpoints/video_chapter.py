@@ -6,15 +6,9 @@ from app.service.chapters.chapters import Chapters
 from app.core.dependencies import get_current_user
 from app.models.user import UserModel
 from app.schema.user import UserDocument
-
-import json
-from fastapi import Request
-from typing import Dict
 import uuid
 from threading import Thread
 from fastapi.responses import JSONResponse
-import threading
-import ffmpeg
 
 
 
@@ -22,16 +16,9 @@ router = APIRouter()
 chapters_handler = Chapters()
 
 @router.post('/api/clips/create')
-async def create_clips(url: str):
+async def create_clips(url: str, current_user: UserDocument = Depends(get_current_user)):
     """API endpoint to create clips from a YouTube URL"""
     try:
-        current_user = await get_current_user()
-        if not current_user:
-            return JSONResponse(
-                status_code=401,
-                content={'success': False, 'error': 'User not authenticated'}
-            )
-
         if not url:
             return JSONResponse(
                 status_code=400,
@@ -59,7 +46,6 @@ async def create_clips(url: str):
         return JSONResponse(
             status_code=202,
             content={
-                'success': True,
                 'job_id': job_id,
                 'message': 'Processing started'
             }
@@ -68,7 +54,7 @@ async def create_clips(url: str):
     except Exception as e:
         return JSONResponse(
             status_code=500,
-            content={'success': False, 'error': str(e)}
+            content={'error': {"message": str(e)}}
         )
 
 @router.get('/{job_id}')

@@ -34,6 +34,7 @@ class UserBase(BaseModel):
     email: EmailStr = Field(..., alias="email")
     username: str = Field(..., alias="username")
     is_admin: Optional[bool] = Field(default=False, alias="isAdmin")
+    is_dev: Optional[bool] = Field(default=False, alias="isDev")
     preferences: Optional[Preferences] = Field(default_factory=Preferences, alias="preferences")
     notes: Optional[List[str]] = Field(default=[], alias="notes")
     quizzes: Optional[List[str]] = Field(default=[], alias="quizzes")
